@@ -64,13 +64,14 @@ func TestNext(t *testing.T) {
 
 func test(t *testing.T, input string, tokens []token.Token) {
 	l := NewLexer(input)
-	for _, e := range tokens {
+	for i, e := range tokens {
 		a := l.Next()
 		if a.Typ != e.Typ {
-			t.Errorf("Unexpected token type [%s]. Expecting [%s].", a.Typ, e.Typ)
+			t.Errorf("%d: Unexpected token type [%s]. Expecting [%s].", i, a.Typ, e.Typ)
 		}
 		if a.Literal != e.Literal {
-			t.Errorf("Unexpected token literal [%s]. Expecting [%s].", a.Literal, e.Literal)
+			t.Errorf("%d: Unexpected token literal [%s]. Expecting [%s].", i, a.Literal, e.Literal)
 		}
+		t.Logf("%d: %s", i, a.Literal)
 	}
 }

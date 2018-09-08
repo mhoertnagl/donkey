@@ -22,6 +22,8 @@ func NewLexer(input string) *Lexer {
 func (l *Lexer) Next() token.Token {
 	var tok token.Token
 
+	l.skipWhitespace()
+
 	switch l.ch {
 	case '(':
 		tok = l.newToken(token.LPAR)
@@ -41,10 +43,16 @@ func (l *Lexer) Next() token.Token {
 		tok = l.newToken(token.SCOLON)
 	default:
 		if isLetter(l.ch) {
-			tok.Literal = l.readId()
+			tok.Literal = l.readID()
 			tok.Typ = token.LookupId(tok.Literal)
+			return tok
+		} else if isDec(l.ch) {
+			tok.Literal = l.readNum()
+			tok.Typ = token.INT
+			return tok
 		} else {
 			tok = l.newToken(token.ILLEGAL)
+			return tok
 		}
 	}
 
@@ -70,9 +78,23 @@ func (l *Lexer) newToken(typ token.TokenType) token.Token {
 
 // }
 
-func (l *Lexer) readId() string {
+func (l *Lexer) skipWhitespace() {
+	for isWhitespace(l.ch) {
+		l.read()
+	}
+}
+
+func (l *Lexer) readID() string {
 	start := l.curPos
 	for isLetter(l.ch) {
+		l.read()
+	}
+	return l.input[start:l.curPos]
+}
+
+func (l *Lexer) readNum() string {
+	start := l.curPos
+	for isDec(l.ch) {
 		l.read()
 	}
 	return l.input[start:l.curPos]
