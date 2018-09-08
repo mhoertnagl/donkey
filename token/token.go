@@ -3,7 +3,7 @@ package token
 type TokenType string
 
 type Token struct {
-	Type    TokenType
+	Typ     TokenType
 	Literal string
 }
 
@@ -23,3 +23,15 @@ const (
 	FUN     = "FUN"
 	LET     = "LET"
 )
+
+var keywords = map[string]TokenType{
+	"fun": FUN,
+	"let": LET,
+}
+
+func LookupId(id string) TokenType {
+	if tok, ok := keywords[id]; ok {
+		return tok
+	}
+	return ID
+}
