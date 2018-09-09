@@ -1,9 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"os"
+
+	"github.com/mhoertnagl/donkey/repl"
 )
 
 func main() {
-	fmt.Println("Test")
+	repl.Start(os.Stdin, os.Stdout)
 }
