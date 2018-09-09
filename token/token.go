@@ -14,6 +14,27 @@ const (
 	INT     = "INT"
 	ASSIGN  = "="
 	PLUS    = "+"
+	MINUS   = "-"
+	TIMES   = "*"
+	DIV     = "/"
+	INV     = "~"
+	AND     = "&"
+	OR      = "|"
+	XOR     = "^"
+	SLL     = "<<"
+	SRL     = ">>"
+	SRA     = ">>>"
+	ROL     = "<<>"
+	ROR     = "<>>"
+	NOT     = "!"
+	CONJ    = "&&"
+	DISJ    = "||"
+	EQU     = "=="
+	NEQ     = "!="
+	LT      = "<"
+	LE      = "<="
+	GT      = ">"
+	GE      = ">="
 	COMMA   = ","
 	SCOLON  = ";"
 	LPAR    = "("
@@ -22,11 +43,21 @@ const (
 	RBRA    = "}"
 	FUN     = "FUN"
 	LET     = "LET"
+	TRUE    = "TRUE"
+	FALSE   = "FALSE"
+	IF      = "IF"
+	ELSE    = "ELSE"
+	RETURN  = "RETURN"
 )
 
 var keywords = map[string]TokenType{
-	"fun": FUN,
-	"let": LET,
+	"fun":    FUN,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
 }
 
 func LookupId(id string) TokenType {

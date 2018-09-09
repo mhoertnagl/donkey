@@ -12,25 +12,30 @@ func TestNext(t *testing.T) {
 		let ten = 10;
 
 		let add = fun(x, y) {
-			x + y;
+			if y > 5 && x < 2 || y != 0 {
+				return x + y / 5 - 2;
+			} else {
+				return 0;
+			}			
 		};
 
 		let result = add(five, ten);
 	`
 
 	tokens := []token.Token{
+		// let five = 5;
 		{token.LET, "let"},
 		{token.ID, "five"},
 		{token.ASSIGN, "="},
 		{token.INT, "5"},
 		{token.SCOLON, ";"},
-
+		// let ten = 10;
 		{token.LET, "let"},
 		{token.ID, "ten"},
 		{token.ASSIGN, "="},
 		{token.INT, "10"},
 		{token.SCOLON, ";"},
-
+		// let add = fun(x, y) {
 		{token.LET, "let"},
 		{token.ID, "add"},
 		{token.ASSIGN, "="},
@@ -39,14 +44,46 @@ func TestNext(t *testing.T) {
 		{token.ID, "x"},
 		{token.COMMA, ","},
 		{token.ID, "y"},
-		{token.ID, ")"},
+		{token.RPAR, ")"},
 		{token.LBRA, "{"},
+		// 	if y > 5 && x < 2 || y != 0 {
+		{token.IF, "if"},
+		{token.ID, "y"},
+		{token.GT, ">"},
+		{token.INT, "5"},
+		{token.CONJ, "&&"},
+		{token.ID, "x"},
+		{token.LT, "<"},
+		{token.INT, "2"},
+		{token.DISJ, "||"},
+		{token.ID, "y"},
+		{token.NEQ, "!="},
+		{token.INT, "0"},
+		{token.LBRA, "{"},
+		// return x + y / 5 - 2;
+		{token.RETURN, "return"},
 		{token.ID, "x"},
 		{token.PLUS, "+"},
 		{token.ID, "y"},
+		{token.DIV, "/"},
+		{token.INT, "5"},
+		{token.MINUS, "-"},
+		{token.INT, "2"},
+		{token.SCOLON, ";"},
+		// } else {
+		{token.RBRA, "}"},
+		{token.ELSE, "else"},
+		{token.LBRA, "{"},
+		// return 0;
+		{token.RETURN, "return"},
+		{token.INT, "0"},
+		{token.SCOLON, ";"},
+		// }
+		{token.RBRA, "}"},
+		// };
 		{token.RBRA, "}"},
 		{token.SCOLON, ";"},
-
+		// let result = add(five, ten);
 		{token.LET, "let"},
 		{token.ID, "result"},
 		{token.ASSIGN, "="},
@@ -55,9 +92,9 @@ func TestNext(t *testing.T) {
 		{token.ID, "five"},
 		{token.COMMA, ","},
 		{token.ID, "ten"},
-		{token.ID, ")"},
+		{token.RPAR, ")"},
 		{token.SCOLON, ";"},
-		{token.EOF, ""},
+		{token.EOF, string(0)},
 	}
 	test(t, input, tokens)
 }
