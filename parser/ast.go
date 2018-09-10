@@ -1,4 +1,4 @@
-package ast
+package parser
 
 import "github.com/mhoertnagl/donkey/token"
 
@@ -35,6 +35,14 @@ type LetStatement struct {
 
 func (s *LetStatement) statement()      {}
 func (s *LetStatement) Literal() string { return s.Token.Literal }
+
+type ReturnStatement struct {
+	Token token.Token
+	Value Expression
+}
+
+func (s *ReturnStatement) statement()      {}
+func (s *ReturnStatement) Literal() string { return s.Token.Literal }
 
 type Identifier struct {
 	Token token.Token
