@@ -1,9 +1,14 @@
 package parser
 
-import "github.com/mhoertnagl/donkey/token"
+import (
+	"bytes"
+
+	"github.com/mhoertnagl/donkey/token"
+)
 
 type Node interface {
 	Literal() string
+	String() string
 }
 
 type Statement interface {
@@ -27,6 +32,14 @@ func (p *Program) Literal() string {
 	return ""
 }
 
+func (p *Program) String() string {
+	var buf bytes.Buffer
+	for _, s := range p.Statements {
+		buf.WriteString(s.String())
+	}
+	return buf.String()
+}
+
 type LetStatement struct {
 	Token token.Token
 	Name  *Identifier
@@ -36,6 +49,19 @@ type LetStatement struct {
 func (s *LetStatement) statement()      {}
 func (s *LetStatement) Literal() string { return s.Token.Literal }
 
+func (s *LetStatement) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("let ")
+	buf.WriteString(s.Name.String())
+	buf.WriteString(" = ")
+	// TODO: Remove when expression parsing is in place.
+	if s.Value != nil {
+		buf.WriteString(s.Value.String())
+	}
+	buf.WriteString(";")
+	return buf.String()
+}
+
 type ReturnStatement struct {
 	Token token.Token
 	Value Expression
@@ -44,6 +70,35 @@ type ReturnStatement struct {
 func (s *ReturnStatement) statement()      {}
 func (s *ReturnStatement) Literal() string { return s.Token.Literal }
 
+func (s *ReturnStatement) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("return ")
+	// TODO: Remove when expression parsing is in place.
+	if s.Value != nil {
+		buf.WriteString(s.Value.String())
+	}
+	buf.WriteString(";")
+	return buf.String()
+}
+
+type ExpressionStatement struct {
+	Token token.Token
+	Value Expression
+}
+
+func (s *ExpressionStatement) statement()      {}
+func (s *ExpressionStatement) Literal() string { return s.Token.Literal }
+
+func (s *ExpressionStatement) String() string {
+	var buf bytes.Buffer
+	// TODO: Remove when expression parsing is in place.
+	if s.Value != nil {
+		buf.WriteString(s.Value.String())
+	}
+	buf.WriteString(";")
+	return buf.String()
+}
+
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -51,3 +106,4 @@ type Identifier struct {
 
 func (s *Identifier) statement()      {}
 func (s *Identifier) Literal() string { return s.Token.Literal }
+func (s *Identifier) String() string  { return s.Value }
