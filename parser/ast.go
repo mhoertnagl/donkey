@@ -2,7 +2,7 @@ package parser
 
 import (
 	"bytes"
-
+	"fmt"
 	"github.com/mhoertnagl/donkey/token"
 )
 
@@ -36,6 +36,7 @@ func (p *Program) String() string {
 	var buf bytes.Buffer
 	for _, s := range p.Statements {
 		buf.WriteString(s.String())
+		buf.WriteString(";")
 	}
 	return buf.String()
 }
@@ -58,7 +59,7 @@ func (s *LetStatement) String() string {
 	if s.Value != nil {
 		buf.WriteString(s.Value.String())
 	}
-	buf.WriteString(";")
+	//buf.WriteString(";")
 	return buf.String()
 }
 
@@ -77,7 +78,7 @@ func (s *ReturnStatement) String() string {
 	if s.Value != nil {
 		buf.WriteString(s.Value.String())
 	}
-	buf.WriteString(";")
+	//buf.WriteString(";")
 	return buf.String()
 }
 
@@ -95,7 +96,7 @@ func (s *ExpressionStatement) String() string {
 	if s.Value != nil {
 		buf.WriteString(s.Value.String())
 	}
-	buf.WriteString(";")
+	//buf.WriteString(";")
 	return buf.String()
 }
 
@@ -104,6 +105,15 @@ type Identifier struct {
 	Value string
 }
 
-func (s *Identifier) statement()      {}
-func (s *Identifier) Literal() string { return s.Token.Literal }
-func (s *Identifier) String() string  { return s.Value }
+func (e *Identifier) expression()     {}
+func (e *Identifier) Literal() string { return e.Token.Literal }
+func (e *Identifier) String() string  { return e.Value }
+
+type Integer struct {
+	Token token.Token
+	Value int64
+}
+
+func (e *Integer) expression()     {}
+func (e *Integer) Literal() string { return e.Token.Literal }
+func (e *Integer) String() string  { return fmt.Sprintf("%d", e.Value) }

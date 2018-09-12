@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/token"
+	"strconv"
 )
 
 const (
@@ -36,7 +37,16 @@ type Parser struct {
 }
 
 func NewParser(lexer *lexer.Lexer) *Parser {
-	p := &Parser{lexer: lexer, errors: []string{}}
+	p := &Parser{
+		lexer:          lexer,
+		errors:         []string{},
+		prefixParslets: make(map[token.TokenType]prefixParslet),
+		infixParslets:  make(map[token.TokenType]infixParslet),
+	}
+
+	p.registerPrefix(token.ID, p.parseIdentifer)
+	p.registerPrefix(token.INT, p.parseInteger)
+
 	p.next()
 	p.next()
 	return p
@@ -73,7 +83,7 @@ func (p *Parser) expectNext(exp token.TokenType) bool {
 }
 
 func (p *Parser) errorNext(exp token.TokenType) {
-	msg := fmt.Sprintf("Expected token [%s] but got [%s].", exp, p.curToken.Typ)
+	msg := fmt.Sprintf("Expected token [%s] but got [%s].", exp, p.nxtToken.Typ)
 	p.errors = append(p.errors, msg)
 }
 
@@ -86,10 +96,12 @@ func (p *Parser) Parse() *Program {
 	prog.Statements = []Statement{}
 	i := 10
 	for !p.curTokenIs(token.EOF) && i > 0 {
+		//fmt.Printf("STMT: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
 		stmt := p.parseStatement()
 		if stmt != nil {
 			prog.Statements = append(prog.Statements, stmt)
 		}
+
 		p.next()
 		i--
 	}
@@ -112,36 +124,60 @@ func (p *Parser) parseLetStatement() *LetStatement {
 	if !p.expectNext(token.ID) {
 		return nil
 	}
-	//fmt.Printf("LET: %s\n", p.curToken.Typ)
+	//fmt.Printf("LET: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
 	stmt.Name = &Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	if !p.expectNext(token.ASSIGN) {
 		return nil
 	}
+	p.next() // Skip =
 	//fmt.Printf("LET: %s\n", p.curToken.Typ)
-	//stmt.Value = nil
-	for !p.curTokenIs(token.SCOLON) {
-		p.next()
-		//fmt.Printf("LET: %s\n", p.curToken.Typ)
-	}
+	stmt.Value = p.parseExpression(LOWEST)
+	// if p.nxtTokenIs(token.SCOLON) {
+	// 	p.next()
+	// }
 	return stmt
 }
 
 func (p *Parser) parseReturnStatement() *ReturnStatement {
 	stmt := &ReturnStatement{Token: p.curToken}
 	p.next()
-	//stmt.Value = nil
-	for !p.curTokenIs(token.SCOLON) {
-		p.next()
-	}
+	stmt.Value = p.parseExpression(LOWEST)
+	// if p.nxtTokenIs(token.SCOLON) {
+	// 	p.next()
+	// }
 	return stmt
 }
 
 func (p *Parser) parseExpressionStatement() *ExpressionStatement {
 	stmt := &ExpressionStatement{Token: p.curToken}
-	p.next()
-	//stmt.Value = nil
-	for !p.curTokenIs(token.SCOLON) {
-		p.next()
-	}
+	stmt.Value = p.parseExpression(LOWEST)
+	//fmt.Printf("STMT: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	// if p.nxtTokenIs(token.SCOLON) {
+	// 	p.next()
+	// }
 	return stmt
+}
+
+func (p *Parser) parseExpression(pre int) Expression {
+	prefix := p.prefixParslets[p.curToken.Typ]
+	if prefix == nil {
+		return nil
+	}
+	left := prefix()
+	return left
+}
+
+func (p *Parser) parseIdentifer() Expression {
+	expr := &Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	p.next()
+	return expr
+}
+
+func (p *Parser) parseInteger() Expression {
+	n, err := strconv.ParseInt(p.curToken.Literal, 10, 64)
+	if err != nil {
+		p.errorNext(token.INT)
+	}
+	p.next()
+	return &Integer{Token: p.curToken, Value: n}
 }
