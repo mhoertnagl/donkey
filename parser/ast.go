@@ -136,7 +136,12 @@ type PrefixExpression struct {
 func (e *PrefixExpression) expression()     {}
 func (e *PrefixExpression) Literal() string { return e.Token.Literal }
 func (e *PrefixExpression) String() string {
-	return fmt.Sprintf("(%s%s)", e.Operator, e.Value.String())
+	var buf bytes.Buffer
+	buf.WriteString("(")
+	buf.WriteString(e.Operator)
+	buf.WriteString(e.Value.String())
+	buf.WriteString(")")
+	return buf.String()
 }
 
 type BinaryExpression struct {
@@ -149,5 +154,13 @@ type BinaryExpression struct {
 func (e *BinaryExpression) expression()     {}
 func (e *BinaryExpression) Literal() string { return e.Token.Literal }
 func (e *BinaryExpression) String() string {
-	return fmt.Sprintf("(%s %s %s)", e.Left.String(), e.Operator, e.Right.String())
+	var buf bytes.Buffer
+	buf.WriteString("(")
+	buf.WriteString(e.Left.String())
+	buf.WriteString(" ")
+	buf.WriteString(e.Operator)
+	buf.WriteString(" ")
+	buf.WriteString(e.Right.String())
+	buf.WriteString(")")
+	return buf.String()
 }
