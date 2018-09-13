@@ -117,3 +117,37 @@ type Integer struct {
 func (e *Integer) expression()     {}
 func (e *Integer) Literal() string { return e.Token.Literal }
 func (e *Integer) String() string  { return fmt.Sprintf("%d", e.Value) }
+
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (e *Boolean) expression()     {}
+func (e *Boolean) Literal() string { return e.Token.Literal }
+func (e *Boolean) String() string  { return fmt.Sprintf("%t", e.Value) }
+
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Value    Expression
+}
+
+func (e *PrefixExpression) expression()     {}
+func (e *PrefixExpression) Literal() string { return e.Token.Literal }
+func (e *PrefixExpression) String() string {
+	return fmt.Sprintf("(%s%s)", e.Operator, e.Value.String())
+}
+
+type BinaryExpression struct {
+	Token    token.Token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (e *BinaryExpression) expression()     {}
+func (e *BinaryExpression) Literal() string { return e.Token.Literal }
+func (e *BinaryExpression) String() string {
+	return fmt.Sprintf("(%s %s %s)", e.Left.String(), e.Operator, e.Right.String())
+}

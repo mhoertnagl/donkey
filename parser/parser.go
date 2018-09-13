@@ -46,6 +46,11 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 
 	p.registerPrefix(token.ID, p.parseIdentifer)
 	p.registerPrefix(token.INT, p.parseInteger)
+	p.registerPrefix(token.TRUE, p.parseBoolean)
+	p.registerPrefix(token.FALSE, p.parseBoolean)
+	p.registerPrefix(token.MINUS, p.parsePrefix)
+	p.registerPrefix(token.INV, p.parsePrefix)
+	p.registerPrefix(token.NOT, p.parsePrefix)
 
 	p.next()
 	p.next()
@@ -161,6 +166,8 @@ func (p *Parser) parseExpressionStatement() *ExpressionStatement {
 func (p *Parser) parseExpression(pre int) Expression {
 	prefix := p.prefixParslets[p.curToken.Typ]
 	if prefix == nil {
+		msg := fmt.Sprintf("No prefix parslet found for token [%s].", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
 		return nil
 	}
 	left := prefix()
@@ -180,4 +187,42 @@ func (p *Parser) parseInteger() Expression {
 	}
 	p.next()
 	return &Integer{Token: p.curToken, Value: n}
+}
+
+func (p *Parser) parseBoolean() Expression {
+	expr := &Boolean{Token: p.curToken}
+	if p.curToken.Typ == token.TRUE {
+		expr.Value = true
+	} else {
+		expr.Value = false
+	}
+	p.next()
+	return expr
+}
+
+func (p *Parser) parsePrefix() Expression {
+	//fmt.Printf("PRE1: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	expr := &PrefixExpression{Token: p.curToken}
+	expr.Operator = p.curToken.Literal
+	p.next()
+	//fmt.Printf("PRE2: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	expr.Value = p.parseExpression(PREFIX)
+	//fmt.Printf("PRE3: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	p.next()
+	//fmt.Printf("PRE4: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	return expr
+}
+
+func (p *Parser) parseBinary(left Expression) Expression {
+	//fmt.Printf("PRE1: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	expr := &BinaryExpression{Token: p.curToken}
+	expr.Left = left
+	expr.Operator = p.curToken.Literal
+	p.next()
+	//fmt.Printf("PRE2: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	expr.Right = p.parseExpression(PREFIX)
+	//fmt.Printf("PRE3: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	p.next()
+	//fmt.Printf("PRE4: %s :: %s\n", p.curToken.Typ, p.nxtToken.Typ)
+	return expr
 }
