@@ -6,16 +6,18 @@ import (
 	"github.com/mhoertnagl/donkey/lexer"
 )
 
-func Test(t *testing.T) {
-	test(t, "0;", "0;", 1)
-	test(t, "x;", "x;", 1)
+func TestStatements(t *testing.T) {
 	test(t, "let a = 0;", "let a = 0;", 1)
 	test(t, "return 42;", "return 42;", 1)
 	test(t, "return a;", "return a;", 1)
+	test(t, "0;", "0;", 1)
+	test(t, "x;", "x;", 1)
 	test(t, "-15;", "(-15);", 1)
 	test(t, "!true;", "(!true);", 1)
 	test(t, "~0;", "(~0);", 1)
 	test(t, "~~0;", "(~(~0));", 1)
+	test(t, "0; 1; 2;", "0;1;2;", 3)
+	test(t, "-0; --1; !false;", "(-0);(-(-1));(!false);", 3)
 	test(t, "false || false;", "(false || false);", 1)
 	test(t, "false && false;", "(false && false);", 1)
 	test(t, "a == 5;", "(a == 5);", 1)
@@ -30,10 +32,13 @@ func Test(t *testing.T) {
 	test(t, "5 << 5;", "(5 << 5);", 1)
 	test(t, "5 >> 5;", "(5 >> 5);", 1)
 	test(t, "5 >>> 5;", "(5 >>> 5);", 1)
+	test(t, "5 <>> 5;", "(5 <>> 5);", 1)
+	test(t, "5 <<> 5;", "(5 <<> 5);", 1)
 	test(t, "5 + 5;", "(5 + 5);", 1)
 	test(t, "5 - 5;", "(5 - 5);", 1)
 	test(t, "5 * 5;", "(5 * 5);", 1)
 	test(t, "5 / 5;", "(5 / 5);", 1)
+	// TODO: Test operator precedence.
 }
 
 func test(t *testing.T, input string, expected string, n int) {
@@ -41,7 +46,6 @@ func test(t *testing.T, input string, expected string, n int) {
 	parser := NewParser(lexer)
 	root := parser.Parse()
 	actual := root.String()
-	//t.Logf("Debug: %v", root)
 	m := len(root.Statements)
 	if m != n {
 		t.Errorf("Expected [%d] statements but got [%d].", n, m)

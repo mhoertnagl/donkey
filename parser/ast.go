@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/mhoertnagl/donkey/token"
 )
 
@@ -49,7 +50,6 @@ type LetStatement struct {
 
 func (s *LetStatement) statement()      {}
 func (s *LetStatement) Literal() string { return s.Token.Literal }
-
 func (s *LetStatement) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("let ")
@@ -70,7 +70,6 @@ type ReturnStatement struct {
 
 func (s *ReturnStatement) statement()      {}
 func (s *ReturnStatement) Literal() string { return s.Token.Literal }
-
 func (s *ReturnStatement) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("return ")
@@ -89,7 +88,6 @@ type ExpressionStatement struct {
 
 func (s *ExpressionStatement) statement()      {}
 func (s *ExpressionStatement) Literal() string { return s.Token.Literal }
-
 func (s *ExpressionStatement) String() string {
 	var buf bytes.Buffer
 	// TODO: Remove when expression parsing is in place.

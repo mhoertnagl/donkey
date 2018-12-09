@@ -59,11 +59,6 @@ func (l *Lexer) Next() token.Token {
 		}
 	case '^':
 		tok = l.newToken(token.XOR)
-		// SLL     = "<<"
-		// SRL     = ">>"
-		// SRA     = ">>>"
-		// ROL     = "<<>"
-		// ROR     = "<>>"
 	case '!':
 		if l.peek() == '=' {
 			l.read()
@@ -76,11 +71,26 @@ func (l *Lexer) Next() token.Token {
 		case '=':
 			l.read()
 			tok = l.newToken2(token.LE, "<=")
+		case '>':
+			l.read()
+			switch l.peek() {
+			case '>':
+				l.read()
+				tok = l.newToken2(token.ROR, "<>>")
+			default:
+				// Error: read [<>], expecting another [>].
+				tok = l.newToken(token.ILLEGAL)
+				return tok
+			}
 		case '<':
 			l.read()
-			tok = l.newToken2(token.SLL, "<<")
-			// TODO: <>> ROR
-			// TODO: <<> ROL
+			switch l.peek() {
+			case '>':
+				l.read()
+				tok = l.newToken2(token.ROR, "<<>")
+			default:
+				tok = l.newToken2(token.SLL, "<<")
+			}
 		default:
 			tok = l.newToken(token.LT)
 		}
@@ -91,8 +101,13 @@ func (l *Lexer) Next() token.Token {
 			tok = l.newToken2(token.GE, ">=")
 		case '>':
 			l.read()
-			tok = l.newToken2(token.SRL, ">>")
-			// TODO: >>> SRA
+			switch l.peek() {
+			case '>':
+				l.read()
+				tok = l.newToken2(token.SRA, ">>>")
+			default:
+				tok = l.newToken2(token.SRL, ">>")
+			}
 		default:
 			tok = l.newToken(token.GT)
 		}

@@ -13,8 +13,7 @@ func Start(in io.Reader, out io.Writer) {
 	s := bufio.NewScanner(in)
 	for {
 		fmt.Fprintf(out, ">> ")
-		ok := s.Scan()
-		if !ok {
+		if ok := s.Scan(); !ok {
 			return
 		}
 		input := s.Text()
