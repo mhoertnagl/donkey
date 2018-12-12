@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 
+  "github.com/mhoertnagl/donkey/console"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/token"
 )
 
-func Start(in io.Reader, out io.Writer) {
+func Start(in io.Reader, out io.Writer, cargs console.Args) {
 	s := bufio.NewScanner(in)
 	for {
 		fmt.Fprintf(out, ">> ")
@@ -22,10 +23,14 @@ func Start(in io.Reader, out io.Writer) {
 			return
 		}
 		lexer := lexer.NewLexer(input)
-		tok := lexer.Next()
-		for tok.Typ != token.EOF && tok.Typ != token.ILLEGAL {
-			fmt.Fprintf(out, "%s [%s]\n", tok.Literal, tok.Typ)
-			tok = lexer.Next()
-		}
+    
+    if cargs.LexOnly {
+      tok := lexer.Next()
+      for tok.Typ != token.EOF && tok.Typ != token.ILLEGAL {
+        fmt.Fprintf(out, "%s [%s]\n", tok.Literal, tok.Typ)
+        tok = lexer.Next()
+      }
+      continue
+    }
 	}
 }
