@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io"
 
+  //"github.com/mhoertnagl/donkey/aegis"
   "github.com/mhoertnagl/donkey/console"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/token"
 )
 
 func Start(in io.Reader, out io.Writer, cargs console.Args) {
+  //aegis.FsetTextColor(out, aegis.Color(245, 245, 255));
 	s := bufio.NewScanner(in)
 	for {
 		fmt.Fprintf(out, ">> ")
