@@ -9,6 +9,7 @@ import (
   "github.com/mhoertnagl/donkey/console"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/token"
+  "github.com/mhoertnagl/donkey/parser"
 )
 
 func Start(in io.Reader, out io.Writer, cargs console.Args) {
@@ -24,14 +25,27 @@ func Start(in io.Reader, out io.Writer, cargs console.Args) {
 			fmt.Fprintf(out, "Bye.\n")
 			return
 		}
-		lexer := lexer.NewLexer(input)
     
+		lexer := lexer.NewLexer(input)    
     if cargs.LexOnly {
       tok := lexer.Next()
       for tok.Typ != token.EOF && tok.Typ != token.ILLEGAL {
         fmt.Fprintf(out, "%s [%s]\n", tok.Literal, tok.Typ)
         tok = lexer.Next()
       }
+      continue
+    }
+    
+    parser := parser.NewParser(lexer)
+    ast := parser.Parse()
+    if cargs.ParseOnly {
+      if parser.HasErrors() {
+        for _, err := range parser.Errors() {
+          fmt.Fprintf(out, "%s\n", err)
+        }
+      } else {
+        fmt.Fprintf(out, "%s\n", ast)
+      }    
       continue
     }
 	}
