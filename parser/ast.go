@@ -37,7 +37,7 @@ func (p *Program) String() string {
 	var buf bytes.Buffer
 	for _, s := range p.Statements {
 		buf.WriteString(s.String())
-		buf.WriteString(";")
+		//buf.WriteString(";")
 	}
 	return buf.String()
 }
@@ -59,7 +59,7 @@ func (s *LetStatement) String() string {
 	if s.Value != nil {
 		buf.WriteString(s.Value.String())
 	}
-	//buf.WriteString(";")
+	buf.WriteString(";")
 	return buf.String()
 }
 
@@ -77,7 +77,51 @@ func (s *ReturnStatement) String() string {
 	if s.Value != nil {
 		buf.WriteString(s.Value.String())
 	}
-	//buf.WriteString(";")
+	buf.WriteString(";")
+	return buf.String()
+}
+
+type IfStatement struct {
+  Token token.Token
+  Condition Expression
+  Consequence Statement
+  Alternative Statement
+}
+
+func (s *IfStatement) statement()      {}
+func (s *IfStatement) Literal() string { return s.Token.Literal }
+func (s *IfStatement) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("if")
+  buf.WriteString(" ")
+  buf.WriteString(s.Condition.String())
+  buf.WriteString(" ")
+  buf.WriteString(s.Consequence.String())
+  if s.Alternative != nil {
+    buf.WriteString(" ")  
+    buf.WriteString("else")
+    buf.WriteString(" ")
+    buf.WriteString(s.Alternative.String())    
+  }
+	return buf.String()
+}
+
+type BlockStatement struct {
+  Token token.Token
+  Statements []Statement
+}
+
+func (s *BlockStatement) statement()      {}
+func (s *BlockStatement) Literal() string { return s.Token.Literal }
+func (s *BlockStatement) String() string {
+	var buf bytes.Buffer
+  buf.WriteString("{")
+  buf.WriteString(" ")
+  for _, stmt := range s.Statements {
+    buf.WriteString(stmt.String())
+  }
+  buf.WriteString(" ")
+  buf.WriteString("}")
 	return buf.String()
 }
 

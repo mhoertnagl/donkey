@@ -75,6 +75,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.parsePrefix)
 	p.registerPrefix(token.INV, p.parsePrefix)
 	p.registerPrefix(token.NOT, p.parsePrefix)
+  p.registerPrefix(token.LPAR, p.parseExpressionGroup)
 
 	p.registerInfix(token.DISJ, p.parseBinary)
 	p.registerInfix(token.CONJ, p.parseBinary)
@@ -101,6 +102,10 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.next()
 	p.next()
 	return p
+}
+
+func (p *Parser) debug(prefix string) {
+  fmt.Printf("%s: Current: %s | Next: %s\n", prefix, p.curToken, p.nxtToken)
 }
 
 func (p *Parser) curTokenPrecedence() int {
@@ -151,6 +156,10 @@ func (p *Parser) expectNext(exp token.TokenType) bool {
 	return false
 }
 
+func (p *Parser) HasErrors() bool {
+	return len(p.errors) > 0
+}
+
 func (p *Parser) Errors() []string {
 	return p.errors
 }
@@ -172,7 +181,6 @@ func (p *Parser) Parse() *Program {
 		if stmt != nil {
 			prog.Statements = append(prog.Statements, stmt)
 		}
-
 		p.next()
 		i--
 	}
@@ -185,6 +193,10 @@ func (p *Parser) parseStatement() Statement {
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+  case token.IF:
+    return p.parseIfStatement()
+  case token.LBRA:
+    return p.parseBlockStatement()
 	}
 	return p.parseExpressionStatement()
 }
@@ -214,6 +226,51 @@ func (p *Parser) parseReturnStatement() *ReturnStatement {
 		p.next()
 	}
 	return stmt
+}
+
+func (p *Parser) parseIfStatement() *IfStatement {
+	stmt := &IfStatement{Token: p.curToken}
+  if !p.expectNext(token.LPAR) {
+    return nil
+  }
+  p.next() // Consume [(].
+  stmt.Condition = p.parseExpression(LOWEST)
+  if !p.expectNext(token.RPAR) {
+    return nil
+  }  
+  p.next() // Consume [)].
+  stmt.Consequence = p.parseStatement()
+  p.next() // Consume [;|}].
+  //p.debug("cons after")
+  if p.curTokenIs(token.ELSE) {    
+    p.next() // Consume [else].    
+    //p.debug("alt before")
+    stmt.Alternative = p.parseStatement()
+    p.next() // Consume [;|}].
+    //p.debug("alt after")
+  }
+	return stmt
+}
+
+func (p *Parser) parseBlockStatement() *BlockStatement {
+	block := &BlockStatement{Token: p.curToken}
+  block.Statements = []Statement{}
+	p.next() // Consume [{].
+  i := 10
+  //p.debug("block init")
+  for !p.curTokenIs(token.RBRA) && !p.curTokenIs(token.EOF) && i > 0 {
+    stmt := p.parseStatement()
+    //p.debug("block stmt")
+    if stmt != nil {
+      block.Statements = append(block.Statements, stmt)
+    }
+    p.next() // Consume [;].
+    //p.debug("block stmt 2")
+    i--
+  }
+  //p.next() // Consume [}].
+  //p.debug("block exit")
+	return block
 }
 
 func (p *Parser) parseExpressionStatement() *ExpressionStatement {
@@ -282,4 +339,15 @@ func (p *Parser) parseBinary(left Expression) Expression {
 	p.next() // Consume operator.
 	expr.Right = p.parseExpression(precedence)
 	return expr
+}
+
+func (p *Parser) parseExpressionGroup() Expression {
+	p.next() // Consume left parenthesis.
+	expr := p.parseExpression(LOWEST)
+  if p.nxtTokenIs(token.RPAR) {
+    p.next() // Consume right parenthesis.
+    return expr
+  }
+  p.error("Missing closing parenthesis in [%s].", expr)
+	return nil
 }
