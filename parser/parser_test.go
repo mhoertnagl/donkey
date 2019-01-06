@@ -38,6 +38,14 @@ func TestStatements(t *testing.T) {
 	test(t, "5 - 5;", "(5 - 5);", 1)
 	test(t, "5 * 5;", "(5 * 5);", 1)
 	test(t, "5 / 5;", "(5 / 5);", 1)
+
+	test(t, "!~-a;", "(!(~(-a)));", 1)
+	test(t, "a + b + c;", "((a + b) + c);", 1)
+	test(t, "a + b * c + d;", "((a + (b * c)) + d);", 1)
+	test(t, "1 * 2 + 3;", "((1 * 2) + 3);", 1)
+	test(t, "1 + 2 * 3;", "(1 + (2 * 3));", 1)
+	test(t, "1 - -2;", "(1 - (-2));", 1)
+	test(t, "-1 - 2;", "((-1) - 2);", 1)
 	// TODO: Test operator precedence.
 }
 
