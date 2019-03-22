@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+  "strings"
 
 	"github.com/mhoertnagl/donkey/token"
 )
@@ -204,5 +205,28 @@ func (e *BinaryExpression) String() string {
 	buf.WriteString(" ")
 	buf.WriteString(e.Right.String())
 	buf.WriteString(")")
+	return buf.String()
+}
+
+type FunctionLiteral struct {
+  Token  token.Token
+  Params []*Identifier
+  Body   *BlockStatement
+}
+
+func (e *FunctionLiteral) expression() {}
+func (e *FunctionLiteral) Literal() string { return e.Token.Literal }
+func (e *FunctionLiteral) String() string {
+  params := []string{}
+  for _, id := range e.Params {
+    params = append(params, id.String())
+  }
+  
+	var buf bytes.Buffer
+  buf.WriteString("fun")
+	buf.WriteString("(")  
+	buf.WriteString(strings.Join(params, ", "))
+	buf.WriteString(")")
+  buf.WriteString(e.Body.String())
 	return buf.String()
 }

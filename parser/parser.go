@@ -76,6 +76,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INV, p.parsePrefix)
 	p.registerPrefix(token.NOT, p.parsePrefix)
   p.registerPrefix(token.LPAR, p.parseExpressionGroup)
+  p.registerPrefix(token.FUN, p.parseFunctionLiteral)
 
 	p.registerInfix(token.DISJ, p.parseBinary)
 	p.registerInfix(token.CONJ, p.parseBinary)
@@ -350,4 +351,13 @@ func (p *Parser) parseExpressionGroup() Expression {
   }
   p.error("Missing closing parenthesis in [%s].", expr)
 	return nil
+}
+
+func (p *Parser) parseFunctionLiteral() Expression {
+  expr := &FunctionLiteral{Token: p.curToken}
+  if !p.expectNext(token.LPAR) {
+    return nil
+  }
+
+	return expr
 }

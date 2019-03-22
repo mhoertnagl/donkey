@@ -50,6 +50,10 @@ func TestStatements(t *testing.T) {
   test(t, "if (0 < 1) { return 1; }", "if (0 < 1) { return 1; }", 1)
   test(t, "if (0 < 1) { let a = b + c; return a; }", "if (0 < 1) { let a = (b + c);return a; }", 1)
   test(t, "if (0 < 1) { return 1; } else { return 0; }", "if (0 < 1) { return 1; } else { return 0; }", 1)
+  
+  test(t, "fun() {};", "fun() {  };", 1)
+  test(t, "fun(a) { return a; };", "fun(a) { return a; };", 1)
+  test(t, "fun(a, b) { return a + b; };", "fun(a, b) { return (a + b); };", 1)
 }
 
 func test(t *testing.T, input string, expected string, n int) {
