@@ -231,25 +231,45 @@ func (p *Parser) parseReturnStatement() *ReturnStatement {
 
 func (p *Parser) parseIfStatement() *IfStatement {
 	stmt := &IfStatement{Token: p.curToken}
-  if !p.expectNext(token.LPAR) {
-    return nil
-  }
-  p.next() // Consume [(].
+  p.next() // Consume [if].
   stmt.Condition = p.parseExpression(LOWEST)
-  if !p.expectNext(token.RPAR) {
-    return nil
-  }  
-  p.next() // Consume [)].
-  stmt.Consequence = p.parseStatement()
-  p.next() // Consume [;|}].
+  p.next() // Consume end of expression.
+  stmt.Consequence = p.parseBlockStatement()
+  p.next() // Consume [}].
   //p.debug("cons after")
   if p.curTokenIs(token.ELSE) {    
     p.next() // Consume [else].    
     //p.debug("alt before")
-    stmt.Alternative = p.parseStatement()
-    p.next() // Consume [;|}].
+    if p.curTokenIs(token.IF) {
+      stmt.Alternative = p.parseIfStatement()
+    } else if p.curTokenIs(token.LBRA) {
+      stmt.Alternative = p.parseBlockStatement()
+    } else {
+      p.error("Expecting block or if statement.")
+      return nil
+    }
+    p.next() // Consume [}].
     //p.debug("alt after")
   }
+  // if !p.expectNext(token.LPAR) {
+  //   return nil
+  // }
+  // p.next() // Consume [(].
+  // stmt.Condition = p.parseExpression(LOWEST)
+  // if !p.expectNext(token.RPAR) {
+  //   return nil
+  // }  
+  // p.next() // Consume [)].
+  // stmt.Consequence = p.parseStatement()
+  // p.next() // Consume [;|}].
+  // //p.debug("cons after")
+  // if p.curTokenIs(token.ELSE) {    
+  //   p.next() // Consume [else].    
+  //   //p.debug("alt before")
+  //   stmt.Alternative = p.parseStatement()
+  //   p.next() // Consume [;|}].
+  //   //p.debug("alt after")
+  // }
 	return stmt
 }
 
@@ -343,10 +363,10 @@ func (p *Parser) parseBinary(left Expression) Expression {
 }
 
 func (p *Parser) parseExpressionGroup() Expression {
-	p.next() // Consume left parenthesis.
+	p.next() // Consume [(].
 	expr := p.parseExpression(LOWEST)
   if p.nxtTokenIs(token.RPAR) {
-    p.next() // Consume right parenthesis.
+    p.next() // Consume [)].
     return expr
   }
   p.error("Missing closing parenthesis in [%s].", expr)
@@ -354,10 +374,21 @@ func (p *Parser) parseExpressionGroup() Expression {
 }
 
 func (p *Parser) parseFunctionLiteral() Expression {
+  //p.debug("fun stmt")
   expr := &FunctionLiteral{Token: p.curToken}
   if !p.expectNext(token.LPAR) {
+    p.error("Missing opening parenthesis in [%s].", expr)
     return nil
   }
-
+  //p.debug("fun args begin")
+  //p.next() // Consume [(].
+  if !p.expectNext(token.RPAR) {
+    p.error("Missing closing parenthesis in [%s].", expr)
+    return nil
+  }
+  p.next() // Consume [)].
+  //p.debug("fun args end")
+  
+  expr.Body = p.parseBlockStatement()
 	return expr
 }

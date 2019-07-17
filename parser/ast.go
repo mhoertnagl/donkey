@@ -139,7 +139,7 @@ func (s *ExpressionStatement) String() string {
 	if s.Value != nil {
 		buf.WriteString(s.Value.String())
 	}
-	//buf.WriteString(";")
+	buf.WriteString(";")
 	return buf.String()
 }
 
@@ -224,9 +224,11 @@ func (e *FunctionLiteral) String() string {
   
 	var buf bytes.Buffer
   buf.WriteString("fun")
+  buf.WriteString(" ")
 	buf.WriteString("(")  
 	buf.WriteString(strings.Join(params, ", "))
 	buf.WriteString(")")
+  buf.WriteString(" ")
   buf.WriteString(e.Body.String())
 	return buf.String()
 }

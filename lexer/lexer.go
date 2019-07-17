@@ -87,7 +87,7 @@ func (l *Lexer) Next() token.Token {
 			switch l.peek() {
 			case '>':
 				l.read()
-				tok = l.newToken2(token.ROR, "<<>")
+				tok = l.newToken2(token.ROL, "<<>")
 			default:
 				tok = l.newToken2(token.SLL, "<<")
 			}
