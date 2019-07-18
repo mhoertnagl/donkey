@@ -72,11 +72,29 @@ func TestIfStatements(t *testing.T) {
   test(t, "if a { return b; } else if b { return c; } else { return d; }", "if a { return b; } else if b { return c; } else { return d; }", 1)
 }
 
+// :>, <:, =>, -> >>=, =<<, |>, <|, ~>, <~, +>, <+, ::, :, #, ?:, (| |), {| |}, |{  }|, <>, ><, <|>, <+>, <->, <=>, ?, ++, --, @, 
+
 func TestFunLiterals(t *testing.T) {
-  test(t, "fun() {};", "fun () {  };", 1)
-  test(t, "fun(a) { return a; };", "fun(a) { return a; };", 1)
-  test(t, "fun(a, b) { return a + b; };", "fun(a, b) { return (a + b); };", 1)
+  test(t, "fun () {};", "fun () {  };", 1)
+  test(t, "fun (a) {};", "fun (a) {  };", 1)
+  test(t, "fun (a, b) {};", "fun (a, b) {  };", 1)
   // test(t, "foo();", "foo();", 1)
+  // test(t, "() => {};", "fun () {  };", 1)
+  // test(t, "(a) => {};", "fun (a) {  };", 1)
+  // test(t, "(a, b) => {};", "fun (a, b) {  };", 1)
+  // test(t, `\ => {};`, "fun () {  };", 1)
+  // test(t, `\(a: Int) => {};`, "fun (a) {  };", 1)
+  // test(t, `\(a, b) => {};`, "fun (a, b) {  };", 1)
+}
+
+func TestFunCall(t *testing.T) {
+  test(t, "foo();", "foo();", 1)
+  test(t, "foo(a);", "foo(a);", 1)
+  test(t, "foo(a, b);", "foo(a, b);", 1)
+  
+  test(t, "fun () { return 0; }()", "fun () { return 0; }()", 1)
+  test(t, "fun (a) { return a + 1; }()", "fun (a) { return (a + 1); }()", 1)
+  test(t, "fun (a, b) { return a + b; }()", "fun (a, b) { return a + b; }()", 1)
 }
 
 func test(t *testing.T, input string, expected string, n int) {
