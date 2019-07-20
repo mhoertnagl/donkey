@@ -59,42 +59,30 @@ func TestExpressionStatements(t *testing.T) {
 }
 
 func TestIfStatements(t *testing.T) {
-  // test(t, "if (0 < 1) return 1;", "if (0 < 1) return 1;", 1)
-  // test(t, "if (0 < 1) return 1; else return 0;", "if (0 < 1) return 1; else return 0;", 1)
-  // test(t, "if (0 < 1) { return 1; }", "if (0 < 1) { return 1; }", 1)
-  // test(t, "if (0 < 1) { let a = b + c; return a; }", "if (0 < 1) { let a = (b + c);return a; }", 1)
-  // test(t, "if (0 < 1) { return 1; } else { return 0; }", "if (0 < 1) { return 1; } else { return 0; }", 1)
-  test(t, "if 0 < 1 { return 1; }", "if (0 < 1) { return 1; }", 1)
-  test(t, "if 0 < 1 && a > b { return 1; } else { return 0; }", "if ((0 < 1) && (a > b)) { return 1; } else { return 0; }", 1)
-  test(t, "if 0 < 1 || x == y { return 1; }", "if ((0 < 1) || (x == y)) { return 1; }", 1)
-  test(t, "if 0 < 1 { let a = b + c; return a; }", "if (0 < 1) { let a = (b + c);return a; }", 1)
-  test(t, "if 0 < 1 { return 1; } else { return 0; }", "if (0 < 1) { return 1; } else { return 0; }", 1)
-  test(t, "if a { return b; } else if b { return c; } else { return d; }", "if a { return b; } else if b { return c; } else { return d; }", 1)
+	test(t, "if 0 < 1 { return 1; }", "if (0 < 1) { return 1; }", 1)
+	test(t, "if 0 < 1 && a > b { return 1; } else { return 0; }", "if ((0 < 1) && (a > b)) { return 1; } else { return 0; }", 1)
+	test(t, "if 0 < 1 || x == y { return 1; }", "if ((0 < 1) || (x == y)) { return 1; }", 1)
+	test(t, "if 0 < 1 { let a = b + c; return a; }", "if (0 < 1) { let a = (b + c);return a; }", 1)
+	test(t, "if 0 < 1 { return 1; } else { return 0; }", "if (0 < 1) { return 1; } else { return 0; }", 1)
+	test(t, "if a { return b; } else if b { return c; } else { return d; }", "if a { return b; } else if b { return c; } else { return d; }", 1)
 }
 
-// :>, <:, =>, -> >>=, =<<, |>, <|, ~>, <~, +>, <+, ::, :, #, ?:, (| |), {| |}, |{  }|, <>, ><, <|>, <+>, <->, <=>, ?, ++, --, @, 
+// :>, <:, =>, -> >>=, =<<, |>, <|, ~>, <~, +>, <+, ::, :, #, ?:, (| |), {| |}, |{  }|, <>, ><, <|>, <+>, <->, <=>, ?, ++, --, @,
 
 func TestFunLiterals(t *testing.T) {
-  test(t, "fun () {};", "fun () {  };", 1)
-  test(t, "fun (a) {};", "fun (a) {  };", 1)
-  test(t, "fun (a, b) {};", "fun (a, b) {  };", 1)
-  // test(t, "foo();", "foo();", 1)
-  // test(t, "() => {};", "fun () {  };", 1)
-  // test(t, "(a) => {};", "fun (a) {  };", 1)
-  // test(t, "(a, b) => {};", "fun (a, b) {  };", 1)
-  // test(t, `\ => {};`, "fun () {  };", 1)
-  // test(t, `\(a: Int) => {};`, "fun (a) {  };", 1)
-  // test(t, `\(a, b) => {};`, "fun (a, b) {  };", 1)
+	test(t, "fun () {};", "fun () {  };", 1)
+	test(t, "fun (a) {};", "fun (a) {  };", 1)
+	test(t, "fun (a, b) {};", "fun (a, b) {  };", 1)
 }
 
 func TestFunCall(t *testing.T) {
-  test(t, "foo();", "foo();", 1)
-  test(t, "foo(a);", "foo(a);", 1)
-  test(t, "foo(a, b);", "foo(a, b);", 1)
-  
-  test(t, "fun () { return 0; }()", "fun () { return 0; }()", 1)
-  test(t, "fun (a) { return a + 1; }()", "fun (a) { return (a + 1); }()", 1)
-  test(t, "fun (a, b) { return a + b; }()", "fun (a, b) { return a + b; }()", 1)
+	test(t, "foo();", "foo();", 1)
+	test(t, "foo(a);", "foo(a);", 1)
+	test(t, "foo(a, b);", "foo(a, b);", 1)
+
+	test(t, "fun () { return 0; }();", "fun () { return 0; }();", 1)
+	test(t, "fun (a) { return a + 1; }(1);", "fun (a) { return (a + 1); }(1);", 1)
+	test(t, "fun (a, b) { return a + b; }(1, 2);", "fun (a, b) { return (a + b); }(1, 2);", 1)
 }
 
 func test(t *testing.T, input string, expected string, n int) {
