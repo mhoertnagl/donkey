@@ -8,6 +8,18 @@ import (
 	"github.com/mhoertnagl/donkey/token"
 )
 
+// TODO: for loop
+// TODO: general iteration conditions
+// TODO: switch case?
+// TODO: strings
+// TODO: arrays
+// TODO: pointers?
+// TODO: structs
+// TODO: list support
+// TODO: tuples?
+// TODO: dictionaries?
+// TODO: type inference
+
 const (
 	_           int = iota
 	LOWEST          // LOWEST precedence.
