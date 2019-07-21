@@ -6,6 +6,10 @@ import (
 	"github.com/mhoertnagl/donkey/lexer"
 )
 
+func TestEmpty(t *testing.T) {
+	test(t, "", "", 0)
+}
+
 func TestLetStatements(t *testing.T) {
 	test(t, "let a = 0;", "let a = 0;", 1)
 }
@@ -18,12 +22,14 @@ func TestReturnStatements(t *testing.T) {
 func TestExpressionStatements(t *testing.T) {
 	test(t, "0;", "0;", 1)
 	test(t, "x;", "x;", 1)
+
 	test(t, "-15;", "(-15);", 1)
 	test(t, "!true;", "(!true);", 1)
 	test(t, "~0;", "(~0);", 1)
 	test(t, "~~0;", "(~(~0));", 1)
-	test(t, "0; 1; 2;", "0;1;2;", 3)
-	test(t, "-0; --1; !false;", "(-0);(-(-1));(!false);", 3)
+	test(t, "--99;", "(-(-99));", 1)
+	test(t, "!~-a;", "(!(~(-a)));", 1)
+
 	test(t, "false || false;", "(false || false);", 1)
 	test(t, "false && false;", "(false && false);", 1)
 	test(t, "a == 5;", "(a == 5);", 1)
@@ -45,17 +51,30 @@ func TestExpressionStatements(t *testing.T) {
 	test(t, "5 * 5;", "(5 * 5);", 1)
 	test(t, "5 / 5;", "(5 / 5);", 1)
 
-	test(t, "!~-a;", "(!(~(-a)));", 1)
-	test(t, "a + b + c;", "((a + b) + c);", 1)
-	test(t, "a + b * c + d;", "((a + (b * c)) + d);", 1)
-	test(t, "1 * 2 + 3;", "((1 * 2) + 3);", 1)
-	test(t, "1 + 2 * 3;", "(1 + (2 * 3));", 1)
 	test(t, "1 - -2;", "(1 - (-2));", 1)
 	test(t, "-1 - 2;", "((-1) - 2);", 1)
+}
 
-	test(t, "1 + (2 + 3) + 4;", "((1 + (2 + 3)) + 4);", 1)
-	test(t, "(2 + 3) * 4;", "((2 + 3) * 4);", 1)
-	// TODO: Test operator precedence.
+func TestOperatorPrecedence(t *testing.T) {
+	test(t, "a + b + c;", "((a + b) + c);", 1)
+	test(t, "a + b * c + d;", "((a + (b * c)) + d);", 1)
+	test(t, "a * b + c;", "((a * b) + c);", 1)
+	test(t, "a + b * c;", "(a + (b * c));", 1)
+	test(t, "a + (b + c) + d;", "((a + (b + c)) + d);", 1)
+	test(t, "(a + b) * c;", "((a + b) * c);", 1)
+}
+
+func TestExpressionGroupStatements(t *testing.T) {
+	test(t, "(0);", "0;", 1)
+	test(t, "((0));", "0;", 1)
+}
+
+func TestBlockStatements(t *testing.T) {
+	test(t, "{ }", "{  }", 1)
+	test(t, "{ 1; }", "{ 1; }", 1)
+	test(t, "{ -1; -2; }", "{ (-1);(-2); }", 1)
+	test(t, "{ 0; 1; 2; }", "{ 0;1;2; }", 1)
+	test(t, "{ -0; --1; !false; }", "{ (-0);(-(-1));(!false); }", 1)
 }
 
 func TestIfStatements(t *testing.T) {
@@ -84,6 +103,8 @@ func TestFunCall(t *testing.T) {
 	test(t, "fun (a) { return a + 1; }(1);", "fun (a) { return (a + 1); }(1);", 1)
 	test(t, "fun (a, b) { return a + b; }(1, 2);", "fun (a, b) { return (a + b); }(1, 2);", 1)
 }
+
+// TODO: Test error cases.
 
 func test(t *testing.T, input string, expected string, n int) {
 	lexer := lexer.NewLexer(input)
