@@ -2,14 +2,13 @@ package lexer
 
 import (
 	"testing"
-
 	"github.com/mhoertnagl/donkey/token"
 )
 
 func TestNext(t *testing.T) {
-	input := `
-		let five = 5;
-		let ten = 10;
+	input := `// A comment.
+    let five = 5;
+		let ten = 10; // Another comment.
 
 		let add = fun(x, y) {
 			if y > 5 && x < 2 || y != 0 {
@@ -24,85 +23,134 @@ func TestNext(t *testing.T) {
 
 	tokens := []token.Token{
 		// let five = 5;
-		{token.LET, "let"},
-		{token.ID, "five"},
-		{token.ASSIGN, "="},
-		{token.INT, "5"},
-		{token.SCOLON, ";"},
+		{Typ: token.LET, Literal: "let"},
+		{Typ: token.ID, Literal: "five"},
+		{Typ: token.ASSIGN, Literal: "="},
+		{Typ: token.INT, Literal: "5"},
+		{Typ: token.SCOLON, Literal: ";"},
 		// let ten = 10;
-		{token.LET, "let"},
-		{token.ID, "ten"},
-		{token.ASSIGN, "="},
-		{token.INT, "10"},
-		{token.SCOLON, ";"},
+		{Typ: token.LET, Literal: "let"},
+		{Typ: token.ID, Literal: "ten"},
+		{Typ: token.ASSIGN, Literal: "="},
+		{Typ: token.INT, Literal: "10"},
+		{Typ: token.SCOLON, Literal: ";"},
 		// let add = fun(x, y) {
-		{token.LET, "let"},
-		{token.ID, "add"},
-		{token.ASSIGN, "="},
-		{token.FUN, "fun"},
-		{token.LPAR, "("},
-		{token.ID, "x"},
-		{token.COMMA, ","},
-		{token.ID, "y"},
-		{token.RPAR, ")"},
-		{token.LBRA, "{"},
+		{Typ: token.LET, Literal: "let"},
+		{Typ: token.ID, Literal: "add"},
+		{Typ: token.ASSIGN, Literal: "="},
+		{Typ: token.FUN, Literal: "fun"},
+		{Typ: token.LPAR, Literal: "("},
+		{Typ: token.ID, Literal: "x"},
+		{Typ: token.COMMA, Literal: ","},
+		{Typ: token.ID, Literal: "y"},
+		{Typ: token.RPAR, Literal: ")"},
+		{Typ: token.LBRA, Literal: "{"},
 		// 	if y > 5 && x < 2 || y != 0 {
-		{token.IF, "if"},
-		{token.ID, "y"},
-		{token.GT, ">"},
-		{token.INT, "5"},
-		{token.CONJ, "&&"},
-		{token.ID, "x"},
-		{token.LT, "<"},
-		{token.INT, "2"},
-		{token.DISJ, "||"},
-		{token.ID, "y"},
-		{token.NEQ, "!="},
-		{token.INT, "0"},
-		{token.LBRA, "{"},
+		{Typ: token.IF, Literal: "if"},
+		{Typ: token.ID, Literal: "y"},
+		{Typ: token.GT, Literal: ">"},
+		{Typ: token.INT, Literal: "5"},
+		{Typ: token.CONJ, Literal: "&&"},
+		{Typ: token.ID, Literal: "x"},
+		{Typ: token.LT, Literal: "<"},
+		{Typ: token.INT, Literal: "2"},
+		{Typ: token.DISJ, Literal: "||"},
+		{Typ: token.ID, Literal: "y"},
+		{Typ: token.NEQ, Literal: "!="},
+		{Typ: token.INT, Literal: "0"},
+		{Typ: token.LBRA, Literal: "{"},
 		// return x + y / 5 - 2;
-		{token.RETURN, "return"},
-		{token.ID, "x"},
-		{token.PLUS, "+"},
-		{token.ID, "y"},
-		{token.DIV, "/"},
-		{token.INT, "5"},
-		{token.MINUS, "-"},
-		{token.INT, "2"},
-		{token.SCOLON, ";"},
+		{Typ: token.RETURN, Literal: "return"},
+		{Typ: token.ID, Literal: "x"},
+		{Typ: token.PLUS, Literal: "+"},
+		{Typ: token.ID, Literal: "y"},
+		{Typ: token.DIV, Literal: "/"},
+		{Typ: token.INT, Literal: "5"},
+		{Typ: token.MINUS, Literal: "-"},
+		{Typ: token.INT, Literal: "2"},
+		{Typ: token.SCOLON, Literal: ";"},
 		// } else {
-		{token.RBRA, "}"},
-		{token.ELSE, "else"},
-		{token.LBRA, "{"},
+		{Typ: token.RBRA, Literal: "}"},
+		{Typ: token.ELSE, Literal: "else"},
+		{Typ: token.LBRA, Literal: "{"},
 		// return 0;
-		{token.RETURN, "return"},
-		{token.INT, "0"},
-		{token.SCOLON, ";"},
+		{Typ: token.RETURN, Literal: "return"},
+		{Typ: token.INT, Literal: "0"},
+		{Typ: token.SCOLON, Literal: ";"},
 		// }
-		{token.RBRA, "}"},
+		{Typ: token.RBRA, Literal: "}"},
 		// };
-		{token.RBRA, "}"},
-		{token.SCOLON, ";"},
+		{Typ: token.RBRA, Literal: "}"},
+		{Typ: token.SCOLON, Literal: ";"},
 		// let result = add(five, ten);
-		{token.LET, "let"},
-		{token.ID, "result"},
-		{token.ASSIGN, "="},
-		{token.ID, "add"},
-		{token.LPAR, "("},
-		{token.ID, "five"},
-		{token.COMMA, ","},
-		{token.ID, "ten"},
-		{token.RPAR, ")"},
-		{token.SCOLON, ";"},
-		{token.EOF, string(0)},
+		{Typ: token.LET, Literal: "let"},
+		{Typ: token.ID, Literal: "result"},
+		{Typ: token.ASSIGN, Literal: "="},
+		{Typ: token.ID, Literal: "add"},
+		{Typ: token.LPAR, Literal: "("},
+		{Typ: token.ID, Literal: "five"},
+		{Typ: token.COMMA, Literal: ","},
+		{Typ: token.ID, Literal: "ten"},
+		{Typ: token.RPAR, Literal: ")"},
+		{Typ: token.SCOLON, Literal: ";"},
+		{Typ: token.EOF, Literal: ""},
 	}
-	test(t, input, tokens)
+	testBlock(t, input, tokens)
 }
+
+func TestSingleTokens(t *testing.T) {
+  test(t, "", token.Token{Typ: token.EOF, Literal: ""})
+  
+  test(t, "=", token.Token{Typ: token.ASSIGN, Literal: "="})
+  test(t, "==", token.Token{Typ: token.EQU, Literal: "=="})
+  
+  test(t, "+", token.Token{Typ: token.PLUS, Literal: "+"})
+  test(t, "-", token.Token{Typ: token.MINUS, Literal: "-"})
+  test(t, "*", token.Token{Typ: token.TIMES, Literal: "*"})
+  test(t, "/", token.Token{Typ: token.DIV, Literal: "/"})
+  
+  test(t, "~", token.Token{Typ: token.INV, Literal: "~"})
+  
+  test(t, "&", token.Token{Typ: token.AND, Literal: "&"})
+  test(t, "&&", token.Token{Typ: token.CONJ, Literal: "&&"})
+  
+  test(t, "|", token.Token{Typ: token.OR, Literal: "|"})
+  test(t, "||", token.Token{Typ: token.DISJ, Literal: "||"})
+  
+  test(t, "^", token.Token{Typ: token.XOR, Literal: "^"})
+  
+  test(t, "!", token.Token{Typ: token.NOT, Literal: "!"})
+  test(t, "!=", token.Token{Typ: token.NEQ, Literal: "!="})
+  
+  test(t, ">", token.Token{Typ: token.GT, Literal: ">"})
+  test(t, ">=", token.Token{Typ: token.GE, Literal: ">="})
+  test(t, ">>", token.Token{Typ: token.SRL, Literal: ">>"})
+  test(t, ">>>", token.Token{Typ: token.SRA, Literal: ">>>"})
+  
+  test(t, "<", token.Token{Typ: token.LT, Literal: "<"})
+  test(t, "<=", token.Token{Typ: token.LE, Literal: "<="})
+  test(t, "<<", token.Token{Typ: token.SLL, Literal: "<<"})
+  test(t, "<>>", token.Token{Typ: token.ROR, Literal: "<>>"})
+  test(t, "<<>", token.Token{Typ: token.ROL, Literal: "<<>"})
+  
+  test(t, "(", token.Token{Typ: token.LPAR, Literal: "("})
+  test(t, ")", token.Token{Typ: token.RPAR, Literal: ")"})
+  test(t, "{", token.Token{Typ: token.LBRA, Literal: "{"})
+  test(t, "}", token.Token{Typ: token.RBRA, Literal: "}"})
+  test(t, ",", token.Token{Typ: token.COMMA, Literal: ","})
+  test(t, ";", token.Token{Typ: token.SCOLON, Literal: ";"})
+  
+  test(t, "xxx", token.Token{Typ: token.ID, Literal: "xxx"})
+  test(t, "42", token.Token{Typ: token.INT, Literal: "42"})
+  
+  test(t, "#", token.Token{Typ: token.ILLEGAL, Literal: "#"})
+}
+
 
 const msgErrUnexpType = "%d: Unexpected token type [%s]. Expecting [%s]."
 const msgErrUnexpLiteral = "%d: Unexpected token literal [%s]. Expecting [%s]."
 
-func test(t *testing.T, input string, tokens []token.Token) {
+func testBlock(t *testing.T, input string, tokens []token.Token) {
 	l := NewLexer(input)
 	for i, e := range tokens {
 		a := l.Next()
@@ -114,4 +162,15 @@ func test(t *testing.T, input string, tokens []token.Token) {
 		}
 		t.Logf("%d: %s", i, a.Literal)
 	}
+}
+
+func test(t *testing.T, input string, token token.Token) {
+  l := NewLexer(input)
+  a := l.Next()
+  if a.Typ != token.Typ {
+    t.Errorf(msgErrUnexpType, 0, a.Typ, token.Typ)
+  }
+  if a.Literal != token.Literal {
+    t.Errorf(msgErrUnexpLiteral, 0, a.Literal, token.Literal)
+  }
 }

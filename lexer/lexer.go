@@ -1,18 +1,24 @@
 package lexer
 
 import (
+  //"fmt"
 	"github.com/mhoertnagl/donkey/token"
 )
 
+// TODO: runes support.
+// TODO: skip multi line comments.
+// TODO: track positional information.
+// TODO: turn into a library.
+
 type Lexer struct {
-	input  string
-	curPos int
-	nxtPos int
-	ch     byte
+	input string
+  len   int
+	pos   int
+	ch    byte
 }
 
 func NewLexer(input string) *Lexer {
-	l := &Lexer{input: input}
+	l := &Lexer{input: input, len: len(input), pos: -1}
 	l.read()
 	return l
 }
@@ -20,122 +26,97 @@ func NewLexer(input string) *Lexer {
 func (l *Lexer) Next() token.Token {
 	var tok token.Token
 
-	l.skipWhitespace()
-	// TODO: skip comments.
-
-	switch l.ch {
-	case 0:
-		tok = l.newToken(token.EOF)
-	case '=':
-		if l.peek() == '=' {
-			l.read()
-			tok = l.newToken2(token.EQU, "==")
-		} else {
-			tok = l.newToken(token.ASSIGN)
-		}
-	case '+':
-		tok = l.newToken(token.PLUS)
-	case '-':
-		tok = l.newToken(token.MINUS)
-	case '*':
-		tok = l.newToken(token.TIMES)
-	case '/':
-		tok = l.newToken(token.DIV)
-	case '~':
-		tok = l.newToken(token.INV)
-	case '&':
-		if l.peek() == '&' {
-			l.read()
-			tok = l.newToken2(token.CONJ, "&&")
-		} else {
-			tok = l.newToken(token.AND)
-		}
-	case '|':
-		if l.peek() == '|' {
-			l.read()
-			tok = l.newToken2(token.DISJ, "||")
-		} else {
-			tok = l.newToken(token.OR)
-		}
-	case '^':
-		tok = l.newToken(token.XOR)
-	case '!':
-		if l.peek() == '=' {
-			l.read()
-			tok = l.newToken2(token.NEQ, "!=")
-		} else {
-			tok = l.newToken(token.NOT)
-		}
-	case '<':
-		switch l.peek() {
-		case '=':
-			l.read()
-			tok = l.newToken2(token.LE, "<=")
-		case '>':
-			l.read()
-			switch l.peek() {
-			case '>':
-				l.read()
-				tok = l.newToken2(token.ROR, "<>>")
-			default:
-				// Error: read [<>], expecting another [>].
-				tok = l.newToken(token.ILLEGAL)
-				return tok
-			}
-		case '<':
-			l.read()
-			switch l.peek() {
-			case '>':
-				l.read()
-				tok = l.newToken2(token.ROL, "<<>")
-			default:
-				tok = l.newToken2(token.SLL, "<<")
-			}
-		default:
-			tok = l.newToken(token.LT)
-		}
-	case '>':
-		switch l.peek() {
-		case '=':
-			l.read()
-			tok = l.newToken2(token.GE, ">=")
-		case '>':
-			l.read()
-			switch l.peek() {
-			case '>':
-				l.read()
-				tok = l.newToken2(token.SRA, ">>>")
-			default:
-				tok = l.newToken2(token.SRL, ">>")
-			}
-		default:
-			tok = l.newToken(token.GT)
-		}
-	case '(':
-		tok = l.newToken(token.LPAR)
-	case ')':
-		tok = l.newToken(token.RPAR)
-	case '{':
-		tok = l.newToken(token.LBRA)
-	case '}':
-		tok = l.newToken(token.RBRA)
-	case ',':
-		tok = l.newToken(token.COMMA)
-	case ';':
-		tok = l.newToken(token.SCOLON)
+  l.skipWhitespace()
+  l.skipSingleLineComments("//")
+	
+	switch {
+	case l.ch == 0:
+		tok = l.emit2(token.EOF, "")
+	case l.peeks(2) == "==":
+    l.read()
+    tok = l.emit2(token.EQU, "==")
+  case l.ch == '=':
+		tok = l.emit(token.ASSIGN)
+	case l.ch == '+':
+		tok = l.emit(token.PLUS)
+	case l.ch == '-':
+		tok = l.emit(token.MINUS)
+	case l.ch == '*':
+		tok = l.emit(token.TIMES)
+	case l.ch == '/':
+		tok = l.emit(token.DIV)
+	case l.ch == '~':
+		tok = l.emit(token.INV)
+	case l.peeks(2) == "&&":
+    l.read()
+    tok = l.emit2(token.CONJ, "&&")
+  case l.ch == '&':
+    tok = l.emit(token.AND)
+	case l.peeks(2) == "||":
+    l.read()
+    tok = l.emit2(token.DISJ, "||")
+  case l.ch == '|':
+		tok = l.emit(token.OR)
+	case l.ch == '^':
+		tok = l.emit(token.XOR)
+	case l.peeks(2) == "!=":
+    l.read()
+    tok = l.emit2(token.NEQ, "!=")
+  case l.ch == '!':
+		tok = l.emit(token.NOT)
+  case l.peeks(3) == "<<>":
+    l.read()
+    l.read()
+    tok = l.emit2(token.ROL, "<<>")  
+  case l.peeks(3) == "<>>":
+    l.read()
+    l.read()
+    tok = l.emit2(token.ROR, "<>>")
+  case l.peeks(2) == "<<":
+    l.read()
+    tok = l.emit2(token.SLL, "<<")   
+  case l.peeks(2) == "<=":
+    l.read()
+    tok = l.emit2(token.LE, "<=")
+  case l.ch == '<':
+    tok = l.emit2(token.LT, "<")     
+  case l.peeks(3) == ">>>":
+    l.read()
+    l.read()
+    tok = l.emit2(token.SRA, ">>>")
+  case l.peeks(2) == ">>":
+    l.read()
+    tok = l.emit2(token.SRL, ">>")
+  case l.peeks(2) == ">=":
+    l.read()
+    tok = l.emit2(token.GE, ">=")
+	case l.ch == '>':
+    tok = l.emit(token.GT)
+	case l.ch == '(':
+		tok = l.emit(token.LPAR)
+	case l.ch == ')':
+		tok = l.emit(token.RPAR)
+	case l.ch == '{':
+		tok = l.emit(token.LBRA)
+	case l.ch == '}':
+		tok = l.emit(token.RBRA)
+	case l.ch == ',':
+		tok = l.emit(token.COMMA)
+	case l.ch == ';':
+		tok = l.emit(token.SCOLON)
+	case isLetter(l.ch):
+    // TODO: return token?
+		tok.Literal = l.readID()
+		tok.Typ = token.LookupId(tok.Literal)
+		return tok
+	case isDec(l.ch):
+    // TODO: return token?
+		tok.Literal = l.readNum()
+		tok.Typ = token.INT
+		return tok
 	default:
-		if isLetter(l.ch) {
-			tok.Literal = l.readID()
-			tok.Typ = token.LookupId(tok.Literal)
-			return tok
-		} else if isDec(l.ch) {
-			tok.Literal = l.readNum()
-			tok.Typ = token.INT
-			return tok
-		} else {
-			tok = l.newToken(token.ILLEGAL)
-			return tok
-		}
+		tok = l.emit(token.ILLEGAL)
+		return tok
 	}
 
 	l.read()
@@ -144,22 +125,34 @@ func (l *Lexer) Next() token.Token {
 
 func (l *Lexer) read() {
 	l.ch = l.peek()
-	l.curPos = l.nxtPos
-	l.nxtPos++
+  l.pos++
 }
 
 func (l *Lexer) peek() byte {
-	if l.nxtPos >= len(l.input) {
-		return 0
-	}
-	return l.input[l.nxtPos]
+  return l.peekAt(1)
 }
 
-func (l *Lexer) newToken(typ token.TokenType) token.Token {
-	return token.Token{Typ: typ, Literal: string(l.ch)}
+func (l *Lexer) peekAt(n uint) byte {
+  posAt := l.pos + int(n)
+  if posAt >= l.len {
+    return 0
+  }
+  return l.input[posAt]
 }
 
-func (l *Lexer) newToken2(typ token.TokenType, literal string) token.Token {
+func (l *Lexer) peeks(n uint) string {
+  posAt := l.pos + int(n)
+  if posAt > l.len {
+    return ""
+  }
+  return l.input[l.pos:posAt]
+}
+
+func (l *Lexer) emit(typ token.TokenType) token.Token {
+	return l.emit2(typ, string(l.ch))
+}
+
+func (l *Lexer) emit2(typ token.TokenType, literal string) token.Token {
 	return token.Token{Typ: typ, Literal: literal}
 }
 
@@ -169,20 +162,29 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
+func (l *Lexer) skipSingleLineComments(marker string) {
+  if l.peeks(uint(len(marker))) == marker {
+    for l.ch != '\n' && l.ch != 0 {
+      l.read()
+    }
+    l.skipWhitespace()
+  }
+}
+
 func (l *Lexer) readID() string {
-	start := l.curPos
+	start := l.pos
 	for isLetter(l.ch) {
 		l.read()
 	}
-	return l.input[start:l.curPos]
+	return l.input[start:l.pos]
 }
 
 func (l *Lexer) readNum() string {
-	start := l.curPos
+	start := l.pos
 	for isDec(l.ch) {
 		l.read()
 	}
-	return l.input[start:l.curPos]
+	return l.input[start:l.pos]
 }
 
 // isWhitespace returns true iff the character is one of [ \t\r\n].
