@@ -8,8 +8,14 @@ import (
 func TestNext(t *testing.T) {
 	input := `// A comment.
     let five = 5;
-		let ten = 10; // Another comment.
+		let ten = 0x10; // Another comment.
 
+    // Commen line 1.
+    // Comment line 2.
+
+    /**
+     * Adds two numbers.
+     */
 		let add = fun(x, y) {
 			if y > 5 && x < 2 || y != 0 {
 				return x + y / 5 - 2;
@@ -18,21 +24,27 @@ func TestNext(t *testing.T) {
 			}			
 		};
 
+    /* Another comment */
+    
+    /**
+     * The result.
+     * Some more comments.
+     */
 		let result = add(five, ten);
 	`
 
 	tokens := []token.Token{
 		// let five = 5;
-		{Typ: token.LET, Literal: "let"},
-		{Typ: token.ID, Literal: "five"},
-		{Typ: token.ASSIGN, Literal: "="},
+		{Typ: token.LET, Literal: "let", Line: 2, Col: 6},
+		{Typ: token.ID, Literal: "five", Line: 2, Col: 10},
+		{Typ: token.ASSIGN, Literal: "=", Line: 2, Col: 15},
 		{Typ: token.INT, Literal: "5"},
 		{Typ: token.SCOLON, Literal: ";"},
-		// let ten = 10;
+		// let ten = 0x10;
 		{Typ: token.LET, Literal: "let"},
 		{Typ: token.ID, Literal: "ten"},
 		{Typ: token.ASSIGN, Literal: "="},
-		{Typ: token.INT, Literal: "10"},
+		{Typ: token.INT, Literal: "0x10"},
 		{Typ: token.SCOLON, Literal: ";"},
 		// let add = fun(x, y) {
 		{Typ: token.LET, Literal: "let"},
@@ -125,7 +137,7 @@ func TestSingleTokens(t *testing.T) {
   test(t, ">", token.Token{Typ: token.GT, Literal: ">"})
   test(t, ">=", token.Token{Typ: token.GE, Literal: ">="})
   test(t, ">>", token.Token{Typ: token.SRL, Literal: ">>"})
-  test(t, ">>>", token.Token{Typ: token.SRA, Literal: ">>>"})
+  test(t, ">>>", token.Token{Typ: token.SRA, Literal: ">>>", Line: 1, Col: 1})
   
   test(t, "<", token.Token{Typ: token.LT, Literal: "<"})
   test(t, "<=", token.Token{Typ: token.LE, Literal: "<="})
@@ -141,7 +153,9 @@ func TestSingleTokens(t *testing.T) {
   test(t, ";", token.Token{Typ: token.SCOLON, Literal: ";"})
   
   test(t, "xxx", token.Token{Typ: token.ID, Literal: "xxx"})
-  test(t, "42", token.Token{Typ: token.INT, Literal: "42"})
+  test(t, "x1", token.Token{Typ: token.ID, Literal: "x1"})
+  test(t, "0123456789", token.Token{Typ: token.INT, Literal: "0123456789"})
+  test(t, "0x0123456789ABCDEF", token.Token{Typ: token.INT, Literal: "0x0123456789ABCDEF"})
   
   test(t, "#", token.Token{Typ: token.ILLEGAL, Literal: "#"})
 }
@@ -149,6 +163,8 @@ func TestSingleTokens(t *testing.T) {
 
 const msgErrUnexpType = "%d: Unexpected token type [%s]. Expecting [%s]."
 const msgErrUnexpLiteral = "%d: Unexpected token literal [%s]. Expecting [%s]."
+const msgErrLineMismatch = "%d: Line mismatch [%d]. Expecting [%d]."
+const msgErrColMismatch = "%d: Column mismatch [%d]. Expecting [%d]."
 
 func testBlock(t *testing.T, input string, tokens []token.Token) {
 	l := NewLexer(input)
@@ -160,7 +176,12 @@ func testBlock(t *testing.T, input string, tokens []token.Token) {
 		if a.Literal != e.Literal {
 			t.Errorf(msgErrUnexpLiteral, i, a.Literal, e.Literal)
 		}
-		t.Logf("%d: %s", i, a.Literal)
+    if e.Line > 0 && a.Line != e.Line {
+      t.Errorf(msgErrLineMismatch, 0, a.Line, e.Line)
+    }
+    if e.Col > 0 && a.Col != e.Col {
+      t.Errorf(msgErrColMismatch, 0, a.Col, e.Col)
+    }
 	}
 }
 
@@ -172,5 +193,11 @@ func test(t *testing.T, input string, token token.Token) {
   }
   if a.Literal != token.Literal {
     t.Errorf(msgErrUnexpLiteral, 0, a.Literal, token.Literal)
+  }
+  if token.Line > 0 && a.Line != token.Line {
+    t.Errorf(msgErrLineMismatch, 0, a.Line, token.Line)
+  }
+  if token.Col > 0 && a.Col != token.Col {
+    t.Errorf(msgErrColMismatch, 0, a.Col, token.Col)
   }
 }
