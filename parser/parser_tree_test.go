@@ -102,16 +102,6 @@ func TestPrintParseTreeBlock(t *testing.T) {
     └ INFIX(+)
        ├ x
        └ y`
-//   expected := `BLOCK
-//  ├ LET x
-//  │  └ 42
-//  ├ LET y
-//  │  └ 43
-//  └ RETURN
-//     └ INFIX(+)
-//        ├ x
-//        └ y
-// `
   testParseTree(t, n, expected)
 }
 

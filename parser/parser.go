@@ -131,9 +131,9 @@ func (p *Parser) registerInfix(tok token.TokenType, f infixParslet) {
 	p.infixParslets[tok] = f
 }
 
-func (p *Parser) debug(prefix string) {
-	fmt.Printf("%s: Current: %s | Next: %s\n", prefix, p.curToken, p.nxtToken)
-}
+// func (p *Parser) debug(prefix string) {
+// 	fmt.Printf("%s: Current: %s | Next: %s\n", prefix, p.curToken, p.nxtToken)
+// }
 
 func (p *Parser) curTokenPrecedence() int {
 	if pre, ok := p.precedences[p.curToken.Typ]; ok {
