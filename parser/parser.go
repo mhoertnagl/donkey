@@ -315,14 +315,14 @@ func (p *Parser) parseBoolean() Expression {
 }
 
 func (p *Parser) parsePrefix() Expression {
-	expr := &PrefixExpression{Token: p.curToken, Operator: p.curToken.Literal}
+	expr := &PrefixExpression{Token: p.curToken, Operator: p.curToken.Typ}
 	p.next() // Consume operator.
 	expr.Value = p.parseExpression(PREFIX)
 	return expr
 }
 
 func (p *Parser) parseBinary(left Expression) Expression {
-	expr := &BinaryExpression{Token: p.curToken, Operator: p.curToken.Literal}
+	expr := &BinaryExpression{Token: p.curToken, Operator: p.curToken.Typ}
 	expr.Left = left
 	precedence := p.curTokenPrecedence()
 	p.next() // Consume operator.

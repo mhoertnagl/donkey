@@ -172,7 +172,7 @@ func (e *Boolean) String() string  { return fmt.Sprintf("%t", e.Value) }
 
 type PrefixExpression struct {
 	Token    token.Token
-	Operator string
+	Operator token.TokenType
 	Value    Expression
 }
 
@@ -181,7 +181,7 @@ func (e *PrefixExpression) Literal() string { return e.Token.Literal }
 func (e *PrefixExpression) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("(")
-	buf.WriteString(e.Operator)
+	buf.WriteString(string(e.Operator))
 	buf.WriteString(e.Value.String())
 	buf.WriteString(")")
 	return buf.String()
@@ -190,7 +190,7 @@ func (e *PrefixExpression) String() string {
 type BinaryExpression struct {
 	Token    token.Token
 	Left     Expression
-	Operator string
+	Operator token.TokenType
 	Right    Expression
 }
 
@@ -201,7 +201,7 @@ func (e *BinaryExpression) String() string {
 	buf.WriteString("(")
 	buf.WriteString(e.Left.String())
 	buf.WriteString(" ")
-	buf.WriteString(e.Operator)
+	buf.WriteString(string(e.Operator))
 	buf.WriteString(" ")
 	buf.WriteString(e.Right.String())
 	buf.WriteString(")")

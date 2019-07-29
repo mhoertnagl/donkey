@@ -23,6 +23,8 @@ const (
 	AND     TokenType = "&"
 	OR      TokenType = "|"
 	XOR     TokenType = "^"
+  // TODO: NOR
+  // NOR TokenType = "~|"
 	SLL     TokenType = "<<"
 	SRL     TokenType = ">>"
 	SRA     TokenType = ">>>"
