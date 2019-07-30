@@ -14,12 +14,37 @@ var zeroI32 = constant.NewInt(types.I32, 0)
 var minusOneI32 = constant.NewInt(types.I32, -1)
 var wordSizeI32 = constant.NewInt(types.I32, 32)
 
+type llvmCodegen struct {
+  module *ir.Module
+  block  *ir.Block
+  fun    *ir.Func
+}
+
 func (c *llvmCodegen) Generate(node parser.Program) {
 
 }
 
 func (c *llvmCodegen) generate(node parser.Node) value.Value {
 
+}
+
+func (c *llvmCodegen) generateLet(node parser.LetStatement) value.Value {
+
+}
+
+func (c *llvmCodegen) generateBlock(node parser.BlockStatement) value.Value {
+
+}
+
+func (c *llvmCodegen) generateIf(node parser.IfStatement) value.Value {
+
+}
+
+func (c *llvmCodegen) generateReturn(node parser.ReturnStatement) value.Value {
+  v := c.generate(node.Value)
+  c.block.NewRet(v)
+  // TODO: return the value that will be returned?
+  return v
 }
 
 func (c *llvmCodegen) generateBool(n *parser.Boolean) value.Value {
@@ -33,6 +58,16 @@ func (c *llvmCodegen) generateInt(n *parser.Integer) value.Value {
 // func (c *llvmCodegen) generateLoadIdentifer(n *parser.Identifier) value.Value {
 // 	return c.block.NewLoad(src) n.Value
 // }
+
+func (c *llvmCodegen) generateCall(n *parser.CallExpression) value.Value {
+  name := c.generate(n.Function)
+  args := []value.Value{}
+  for _, arg := range n.Args {
+    v := c.generate(arg)
+    args = append(args, v)
+  }
+  return c.block.NewCall(name, args...)
+}
 
 func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
 	l := c.generate(n.Left)
@@ -108,8 +143,6 @@ func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
 		// (int, int) -> boolean
 	case token.GE:
 		return c.block.NewICmp(enum.IPredSGE, l, r)
-    
-  
 	}
 	return nil
 }
