@@ -1,5 +1,5 @@
 # donkey
 
-````bash
+```bash
 go get -u github.com/llir/llvm/...
 ```
