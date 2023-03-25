@@ -21,20 +21,20 @@ import (
 // TODO: type inference
 
 const (
-	_           int = iota
-	LOWEST          // LOWEST precedence.
-	OR              // ||
-	AND             // &&
-	EQUALS          // ==, !=
-	LESSGREATER     // >, <, <=, >=
-	BOR             // |
-	XOR             // ^
-	BAND            // &
-	SHIFT           // <<, >>, >>>, <<>, <>>
-	SUM             // +, -
-	PRODUCT         // *, /
-	PREFIX          // -, !, ~
-	CALL            // foo()
+	_       int = iota
+	LOWEST      // LOWEST precedence.
+	OR          // ||
+	AND         // &&
+	EQUALS      // ==, !=
+	COMPARE     // >, <, <=, >=
+	BOR         // |
+	XOR         // ^
+	BAND        // &
+	SHIFT       // <<, >>, >>>, <<>, <>>
+	SUM         // +, -
+	PRODUCT     // *, /
+	PREFIX      // -, !, ~
+	CALL        // foo()
 )
 
 type prefixParslet func() Expression
@@ -63,10 +63,10 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrecedence(token.CONJ, AND)
 	p.registerPrecedence(token.EQU, EQUALS)
 	p.registerPrecedence(token.NEQ, EQUALS)
-	p.registerPrecedence(token.LT, LESSGREATER)
-	p.registerPrecedence(token.LE, LESSGREATER)
-	p.registerPrecedence(token.GT, LESSGREATER)
-	p.registerPrecedence(token.GE, LESSGREATER)
+	p.registerPrecedence(token.LT, COMPARE)
+	p.registerPrecedence(token.LE, COMPARE)
+	p.registerPrecedence(token.GT, COMPARE)
+	p.registerPrecedence(token.GE, COMPARE)
 	p.registerPrecedence(token.OR, BOR)
 	p.registerPrecedence(token.XOR, XOR)
 	p.registerPrecedence(token.AND, BAND)
@@ -81,7 +81,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrecedence(token.DIV, PRODUCT)
 	p.registerPrecedence(token.LPAR, CALL)
 
-	p.registerPrefix(token.ID, p.parseIdentifer)
+	p.registerPrefix(token.ID, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseInteger)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
@@ -89,7 +89,8 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INV, p.parsePrefix)
 	p.registerPrefix(token.NOT, p.parsePrefix)
 	p.registerPrefix(token.LPAR, p.parseExpressionGroup)
-	p.registerPrefix(token.FUN, p.parseFunctionLiteral)
+	// p.registerPrefix(token.FUN, p.parseFunctionLiteral)
+	p.registerPrefix(token.FUN, p.parseFunctionDef)
 
 	p.registerInfix(token.DISJ, p.parseBinary)
 	p.registerInfix(token.CONJ, p.parseBinary)
@@ -164,7 +165,7 @@ func (p *Parser) consume(tok token.TokenType) {
 		p.next()
 		return
 	}
-	p.error("Expecting [%s] but got [%s].", tok, p.curToken)
+	p.error("Expecting [%s] but got [%v].", tok, p.curToken)
 }
 
 func (p *Parser) HasNoErrors() bool {
@@ -179,7 +180,7 @@ func (p *Parser) Errors() []string {
 	return p.errors
 }
 
-func (p *Parser) error(format string, a ...interface{}) {
+func (p *Parser) error(format string, a ...any) {
 	p.errors = append(p.errors, fmt.Sprintf(format, a...))
 }
 
@@ -207,11 +208,11 @@ func (p *Parser) parseStatement() Statement {
 	return p.parseExpressionStatement()
 }
 
-// let <Identifer> = <Expression>
+// let <Identifier> = <Expression>
 func (p *Parser) parseLetStatement() *LetStatement {
 	stmt := &LetStatement{Token: p.curToken}
 	p.consume(token.LET) // [let]
-	stmt.Name = p.identifer()
+	stmt.Name = p.identifier()
 	p.consume(token.ASSIGN) // [=]
 	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
@@ -287,11 +288,11 @@ func (p *Parser) parseExpression(pre int) Expression {
 	return left
 }
 
-func (p *Parser) parseIdentifer() Expression {
-	return p.identifer()
+func (p *Parser) parseIdentifier() Expression {
+	return p.identifier()
 }
 
-func (p *Parser) identifer() *Identifier {
+func (p *Parser) identifier() *Identifier {
 	id := &Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	p.consume(token.ID)
 	return id
@@ -338,16 +339,26 @@ func (p *Parser) parseExpressionGroup() Expression {
 	return expr
 }
 
-// fun <FunctionParams> <BlockStatement>
-func (p *Parser) parseFunctionLiteral() Expression {
-	expr := &FunctionLiteral{Token: p.curToken}
-	p.consume(token.FUN)
+// fn <Identifier> <FunctionParams> <BlockStatement>
+func (p *Parser) parseFunctionDef() Expression {
+	expr := &FunctionDef{Token: p.curToken}
+	p.consume(token.FUN) // [fn]
+	expr.Name = p.identifier()
 	expr.Params = p.parseFunctionParams()
 	expr.Body = p.parseBlockStatement()
 	return expr
 }
 
-// ( <Identifer>* )
+// // fun <FunctionParams> <BlockStatement>
+// func (p *Parser) parseFunctionLiteral() Expression {
+// 	expr := &FunctionLiteral{Token: p.curToken}
+// 	p.consume(token.FUN)
+// 	expr.Params = p.parseFunctionParams()
+// 	expr.Body = p.parseBlockStatement()
+// 	return expr
+// }
+
+// ( <Identifier>* )
 func (p *Parser) parseFunctionParams() []*Identifier {
 	params := []*Identifier{}
 	p.consume(token.LPAR) // [(]
@@ -355,11 +366,11 @@ func (p *Parser) parseFunctionParams() []*Identifier {
 		p.next() // [)]
 		return params
 	}
-	param := p.identifer()
+	param := p.identifier()
 	params = append(params, param)
 	for p.curTokenIs(token.COMMA) {
 		p.next() // [,]
-		param := p.identifer()
+		param := p.identifier()
 		params = append(params, param)
 	}
 	p.consume(token.RPAR) // [)]
@@ -374,7 +385,7 @@ func (p *Parser) parseFunCall(left Expression) Expression {
 	return expr
 }
 
-func (p *Parser) parseExprSeq(start token.TokenType, delim token.TokenType, end token.TokenType) []Expression {
+func (p *Parser) parseExprSeq(start, delim, end token.TokenType) []Expression {
 	exprs := []Expression{}
 	p.consume(start)
 	if p.curTokenIs(end) {

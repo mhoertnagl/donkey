@@ -10,41 +10,55 @@ import (
 	"github.com/mhoertnagl/donkey/token"
 )
 
-var zeroI32 = constant.NewInt(types.I32, 0)
-var minusOneI32 = constant.NewInt(types.I32, -1)
-var wordSizeI32 = constant.NewInt(types.I32, 32)
+var zeroI64 = constant.NewInt(types.I64, 0)
+var minusOneI64 = constant.NewInt(types.I64, -1)
+var wordSizeI64 = constant.NewInt(types.I64, 32)
 
 type llvmCodegen struct {
-  module *ir.Module
-  block  *ir.Block
-  fun    *ir.Func
+	module *ir.Module
+	block  *ir.Block
+	fun    *ir.Func
 }
 
-func (c *llvmCodegen) Generate(node parser.Program) {
-
-}
-
-func (c *llvmCodegen) generate(node parser.Node) value.Value {
+func (c *llvmCodegen) Generate(n parser.Program) {
 
 }
 
-func (c *llvmCodegen) generateLet(node parser.LetStatement) value.Value {
+func (c *llvmCodegen) generate(n parser.Node) value.Value {
 
 }
 
-func (c *llvmCodegen) generateBlock(node parser.BlockStatement) value.Value {
+func (c *llvmCodegen) generateLet(n parser.LetStatement) value.Value {
 
 }
 
-func (c *llvmCodegen) generateIf(node parser.IfStatement) value.Value {
+func (c *llvmCodegen) generateFunDef(n parser.FunctionDef) value.Value {
+	fn := c.generateFunDecl(n)
+}
+
+func (c *llvmCodegen) generateFunDecl(n parser.FunctionDef) *ir.Func {
+	name := n.Name.Value
+	params := []*ir.Param{}
+	for _, param := range n.Params {
+		v := ir.NewParam(param.Value, types.I64)
+		params = append(params, v)
+	}
+	return c.module.NewFunc(name, types.I64, params...)
+}
+
+func (c *llvmCodegen) generateBlock(n parser.BlockStatement) value.Value {
 
 }
 
-func (c *llvmCodegen) generateReturn(node parser.ReturnStatement) value.Value {
-  v := c.generate(node.Value)
-  c.block.NewRet(v)
-  // TODO: return the value that will be returned?
-  return v
+func (c *llvmCodegen) generateIf(n parser.IfStatement) value.Value {
+
+}
+
+func (c *llvmCodegen) generateReturn(n parser.ReturnStatement) value.Value {
+	v := c.generate(n.Value)
+	c.block.NewRet(v)
+	// TODO: return the value that will be returned?
+	return v
 }
 
 func (c *llvmCodegen) generateBool(n *parser.Boolean) value.Value {
@@ -52,7 +66,7 @@ func (c *llvmCodegen) generateBool(n *parser.Boolean) value.Value {
 }
 
 func (c *llvmCodegen) generateInt(n *parser.Integer) value.Value {
-	return constant.NewInt(types.I32, n.Value)
+	return constant.NewInt(types.I64, n.Value)
 }
 
 // func (c *llvmCodegen) generateLoadIdentifer(n *parser.Identifier) value.Value {
@@ -60,13 +74,13 @@ func (c *llvmCodegen) generateInt(n *parser.Integer) value.Value {
 // }
 
 func (c *llvmCodegen) generateCall(n *parser.CallExpression) value.Value {
-  name := c.generate(n.Function)
-  args := []value.Value{}
-  for _, arg := range n.Args {
-    v := c.generate(arg)
-    args = append(args, v)
-  }
-  return c.block.NewCall(name, args...)
+	name := c.generate(n.Function)
+	args := []value.Value{}
+	for _, arg := range n.Args {
+		v := c.generate(arg)
+		args = append(args, v)
+	}
+	return c.block.NewCall(name, args...)
 }
 
 func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
@@ -96,6 +110,7 @@ func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
 	case token.XOR:
 		return c.block.NewXor(l, r)
 
+	// TODO: Short circuiting?
 	// (bool, bool) -> bool
 	case token.CONJ:
 		return c.block.NewAnd(l, r)
@@ -115,13 +130,13 @@ func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
 		// (int, int) -> int
 	case token.ROL:
 		x := c.block.NewShl(l, r)
-		d := c.block.NewSub(wordSizeI32, r)
+		d := c.block.NewSub(wordSizeI64, r)
 		y := c.block.NewLShr(l, d)
 		return c.block.NewOr(x, y)
 	// (int, int) -> int
 	case token.ROR:
 		x := c.block.NewLShr(l, r)
-		d := c.block.NewSub(wordSizeI32, r)
+		d := c.block.NewSub(wordSizeI64, r)
 		y := c.block.NewShl(l, d)
 		return c.block.NewOr(x, y)
 
@@ -153,10 +168,10 @@ func (c *llvmCodegen) generatePrefix(n *parser.PrefixExpression) value.Value {
 	switch n.Operator {
 	// int -> int
 	case token.MINUS:
-		return c.block.NewSub(zeroI32, v)
+		return c.block.NewSub(zeroI64, v)
 	// int -> int
 	case token.INV:
-		return c.block.NewXor(minusOneI32, v)
+		return c.block.NewXor(minusOneI64, v)
 	// bool -> bool
 	case token.NOT:
 		return c.block.NewXor(one, v)

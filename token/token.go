@@ -5,8 +5,8 @@ type TokenType string
 type Token struct {
 	Typ     TokenType
 	Literal string
-  Line    int
-  Col     int
+	Line    int
+	Col     int
 }
 
 const (
@@ -23,39 +23,39 @@ const (
 	AND     TokenType = "&"
 	OR      TokenType = "|"
 	XOR     TokenType = "^"
-  // TODO: NOR
-  // NOR TokenType = "~|"
-	SLL     TokenType = "<<"
-	SRL     TokenType = ">>"
-	SRA     TokenType = ">>>"
-	ROL     TokenType = "<<>"
-	ROR     TokenType = "<>>"
-	NOT     TokenType = "!"
-	CONJ    TokenType = "&&"
-	DISJ    TokenType = "||"
-	EQU     TokenType = "=="
-	NEQ     TokenType = "!="
-	LT      TokenType = "<"
-	LE      TokenType = "<="
-	GT      TokenType = ">"
-	GE      TokenType = ">="
-	COMMA   TokenType = ","
-	SCOLON  TokenType = ";"
-	LPAR    TokenType = "("
-	RPAR    TokenType = ")"
-	LBRA    TokenType = "{"
-	RBRA    TokenType = "}"
-	FUN     TokenType = "FUN"
-	LET     TokenType = "LET"
-	TRUE    TokenType = "TRUE"
-	FALSE   TokenType = "FALSE"
-	IF      TokenType = "IF"
-	ELSE    TokenType = "ELSE"
-	RETURN  TokenType = "RETURN"
+	// TODO: NOR
+	// NOR TokenType = "~|"
+	SLL    TokenType = "<<"
+	SRL    TokenType = ">>"
+	SRA    TokenType = ">>>"
+	ROL    TokenType = "<<>"
+	ROR    TokenType = "<>>"
+	NOT    TokenType = "!"
+	CONJ   TokenType = "&&"
+	DISJ   TokenType = "||"
+	EQU    TokenType = "=="
+	NEQ    TokenType = "!="
+	LT     TokenType = "<"
+	LE     TokenType = "<="
+	GT     TokenType = ">"
+	GE     TokenType = ">="
+	COMMA  TokenType = ","
+	SCOLON TokenType = ";"
+	LPAR   TokenType = "("
+	RPAR   TokenType = ")"
+	LBRA   TokenType = "{"
+	RBRA   TokenType = "}"
+	FUN    TokenType = "FUN"
+	LET    TokenType = "LET"
+	TRUE   TokenType = "TRUE"
+	FALSE  TokenType = "FALSE"
+	IF     TokenType = "IF"
+	ELSE   TokenType = "ELSE"
+	RETURN TokenType = "RETURN"
 )
 
 var keywords = map[string]TokenType{
-	"fun":    FUN,
+	"fn":     FUN,
 	"let":    LET,
 	"true":   TRUE,
 	"false":  FALSE,
