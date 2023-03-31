@@ -90,7 +90,6 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(token.NOT, p.parsePrefix)
 	p.registerPrefix(token.LPAR, p.parseExpressionGroup)
 	// p.registerPrefix(token.FUN, p.parseFunctionLiteral)
-	p.registerPrefix(token.FUN, p.parseFunctionDef)
 
 	p.registerInfix(token.DISJ, p.parseBinary)
 	p.registerInfix(token.CONJ, p.parseBinary)
@@ -156,6 +155,15 @@ func (p *Parser) curTokenIsNot(exp token.TokenType) bool {
 	return p.curToken.Typ != exp
 }
 
+func (p *Parser) curTokenIsNone(exp ...token.TokenType) bool {
+	for _, e := range exp {
+		if p.curTokenIs(e) {
+			return false
+		}
+	}
+	return true
+}
+
 func (p *Parser) nxtTokenIs(exp token.TokenType) bool {
 	return p.nxtToken.Typ == exp
 }
@@ -198,6 +206,8 @@ func (p *Parser) parseStatement() Statement {
 	switch p.curToken.Typ {
 	case token.LET:
 		return p.parseLetStatement()
+	case token.FUN:
+		return p.parseFunDefStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
 	case token.IF:
@@ -216,6 +226,35 @@ func (p *Parser) parseLetStatement() *LetStatement {
 	p.consume(token.ASSIGN) // [=]
 	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
+}
+
+// fn <Identifier> <FunctionParams> <BlockStatement>
+func (p *Parser) parseFunDefStatement() Statement {
+	stmt := &FunDefStatement{Token: p.curToken}
+	p.consume(token.FUN) // [fn]
+	stmt.Name = p.identifier()
+	stmt.Params = p.parseFunctionParams()
+	stmt.Body = p.parseBlockStatement()
+	return stmt
+}
+
+// ( <Identifier>* )
+func (p *Parser) parseFunctionParams() []*Identifier {
+	params := []*Identifier{}
+	p.consume(token.LPAR) // [(]
+	if p.curTokenIs(token.RPAR) {
+		p.next() // [)]
+		return params
+	}
+	param := p.identifier()
+	params = append(params, param)
+	for p.curTokenIs(token.COMMA) {
+		p.next() // [,]
+		param := p.identifier()
+		params = append(params, param)
+	}
+	p.consume(token.RPAR) // [)]
+	return params
 }
 
 // TODO: return <nil>
@@ -255,7 +294,8 @@ func (p *Parser) parseElseStatement() Statement {
 func (p *Parser) parseBlockStatement() *BlockStatement {
 	block := &BlockStatement{Token: p.curToken, Statements: []Statement{}}
 	p.consume(token.LBRA)
-	for p.curTokenIsNot(token.RBRA) && p.curTokenIsNot(token.EOF) {
+	// for p.curTokenIsNot(token.RBRA) && p.curTokenIsNot(token.EOF) {
+	for p.curTokenIsNone(token.RBRA, token.EOF) {
 		stmt := p.parseStatement()
 		block.Statements = append(block.Statements, stmt)
 		p.consume(token.SCOLON)
@@ -278,7 +318,8 @@ func (p *Parser) parseExpression(pre int) Expression {
 		return nil
 	}
 	left := prefix()
-	for p.curTokenIsNot(token.SCOLON) && p.curTokenIsNot(token.EOF) && pre < p.curTokenPrecedence() {
+	// for p.curTokenIsNot(token.SCOLON) && p.curTokenIsNot(token.EOF) && pre < p.curTokenPrecedence() {
+	for p.curTokenIsNone(token.SCOLON, token.EOF) && pre < p.curTokenPrecedence() {
 		infix := p.infixParslets[p.curToken.Typ]
 		if infix == nil {
 			return left
@@ -339,16 +380,6 @@ func (p *Parser) parseExpressionGroup() Expression {
 	return expr
 }
 
-// fn <Identifier> <FunctionParams> <BlockStatement>
-func (p *Parser) parseFunctionDef() Expression {
-	expr := &FunctionDef{Token: p.curToken}
-	p.consume(token.FUN) // [fn]
-	expr.Name = p.identifier()
-	expr.Params = p.parseFunctionParams()
-	expr.Body = p.parseBlockStatement()
-	return expr
-}
-
 // // fun <FunctionParams> <BlockStatement>
 // func (p *Parser) parseFunctionLiteral() Expression {
 // 	expr := &FunctionLiteral{Token: p.curToken}
@@ -357,25 +388,6 @@ func (p *Parser) parseFunctionDef() Expression {
 // 	expr.Body = p.parseBlockStatement()
 // 	return expr
 // }
-
-// ( <Identifier>* )
-func (p *Parser) parseFunctionParams() []*Identifier {
-	params := []*Identifier{}
-	p.consume(token.LPAR) // [(]
-	if p.curTokenIs(token.RPAR) {
-		p.next() // [)]
-		return params
-	}
-	param := p.identifier()
-	params = append(params, param)
-	for p.curTokenIs(token.COMMA) {
-		p.next() // [,]
-		param := p.identifier()
-		params = append(params, param)
-	}
-	p.consume(token.RPAR) // [)]
-	return params
-}
 
 // <Expression> ( <Expression>* )
 func (p *Parser) parseFunCall(left Expression) Expression {

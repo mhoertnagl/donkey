@@ -64,6 +64,33 @@ func (s *LetStatement) String() string {
 	return buf.String()
 }
 
+type FunDefStatement struct {
+	Token  token.Token
+	Name   *Identifier
+	Params []*Identifier
+	Body   *BlockStatement
+}
+
+func (e *FunDefStatement) statement()      {}
+func (e *FunDefStatement) Literal() string { return e.Token.Literal }
+func (e *FunDefStatement) String() string {
+	params := []string{}
+	for _, id := range e.Params {
+		params = append(params, id.String())
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("fn")
+	buf.WriteString(" ")
+	buf.WriteString(e.Name.String())
+	buf.WriteString("(")
+	buf.WriteString(strings.Join(params, ", "))
+	buf.WriteString(")")
+	buf.WriteString(" ")
+	buf.WriteString(e.Body.String())
+	return buf.String()
+}
+
 type ReturnStatement struct {
 	Token token.Token
 	Value Expression
@@ -208,57 +235,30 @@ func (e *BinaryExpression) String() string {
 	return buf.String()
 }
 
-type FunctionDef struct {
-	Token  token.Token
-	Name   *Identifier
-	Params []*Identifier
-	Body   *BlockStatement
-}
+// type FunctionLiteral struct {
+// 	Token  token.Token
+// 	Params []*Identifier
+// 	Body   *BlockStatement
+// }
 
-func (e *FunctionDef) expression()     {}
-func (e *FunctionDef) Literal() string { return e.Token.Literal }
-func (e *FunctionDef) String() string {
-	params := []string{}
-	for _, id := range e.Params {
-		params = append(params, id.String())
-	}
+// func (e *FunctionLiteral) expression()     {}
+// func (e *FunctionLiteral) Literal() string { return e.Token.Literal }
+// func (e *FunctionLiteral) String() string {
+// 	params := []string{}
+// 	for _, id := range e.Params {
+// 		params = append(params, id.String())
+// 	}
 
-	var buf bytes.Buffer
-	buf.WriteString("fn")
-	buf.WriteString(" ")
-	buf.WriteString(e.Name.String())
-	buf.WriteString("(")
-	buf.WriteString(strings.Join(params, ", "))
-	buf.WriteString(")")
-	buf.WriteString(" ")
-	buf.WriteString(e.Body.String())
-	return buf.String()
-}
-
-type FunctionLiteral struct {
-	Token  token.Token
-	Params []*Identifier
-	Body   *BlockStatement
-}
-
-func (e *FunctionLiteral) expression()     {}
-func (e *FunctionLiteral) Literal() string { return e.Token.Literal }
-func (e *FunctionLiteral) String() string {
-	params := []string{}
-	for _, id := range e.Params {
-		params = append(params, id.String())
-	}
-
-	var buf bytes.Buffer
-	buf.WriteString("fun")
-	buf.WriteString(" ")
-	buf.WriteString("(")
-	buf.WriteString(strings.Join(params, ", "))
-	buf.WriteString(")")
-	buf.WriteString(" ")
-	buf.WriteString(e.Body.String())
-	return buf.String()
-}
+// 	var buf bytes.Buffer
+// 	buf.WriteString("fun")
+// 	buf.WriteString(" ")
+// 	buf.WriteString("(")
+// 	buf.WriteString(strings.Join(params, ", "))
+// 	buf.WriteString(")")
+// 	buf.WriteString(" ")
+// 	buf.WriteString(e.Body.String())
+// 	return buf.String()
+// }
 
 type CallExpression struct {
 	Token    token.Token
