@@ -6,6 +6,7 @@ import (
 	"github.com/llir/llvm/ir/enum"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"github.com/mhoertnagl/donkey/cgen"
 	"github.com/mhoertnagl/donkey/parser"
 	"github.com/mhoertnagl/donkey/token"
 	"github.com/mhoertnagl/donkey/utils"
@@ -18,17 +19,21 @@ var wordSizeI64 = constant.NewInt(types.I64, 32)
 var _false = constant.NewInt(types.I1, 0)
 var _true = constant.NewInt(types.I1, 1)
 
-type llvmCodegen struct {
+type LlvmCodegen struct {
 	module *ir.Module
 	block  *ir.Block
 	fun    *ir.Func
 }
 
-func (c *llvmCodegen) Generate(n parser.Program) {
+func NewLlvmCodegen() cgen.Codegen {
+	return &LlvmCodegen{}
+}
+
+func (c *LlvmCodegen) Generate(n parser.Program) {
 	c.generateStatements(n.Statements)
 }
 
-func (c *llvmCodegen) generateStatements(ns []parser.Statement) value.Value {
+func (c *LlvmCodegen) generateStatements(ns []parser.Statement) value.Value {
 	// m := len(n.Statements)
 	// for i := 0; i < m-1; i++ {
 	// 	c.generateStatement(n.Statements[i])
@@ -41,7 +46,7 @@ func (c *llvmCodegen) generateStatements(ns []parser.Statement) value.Value {
 	return res
 }
 
-func (c *llvmCodegen) generateStatement(n parser.Statement) value.Value {
+func (c *LlvmCodegen) generateStatement(n parser.Statement) value.Value {
 	switch n := n.(type) {
 	case *parser.LetStatement:
 		return c.generateLet(n)
@@ -59,20 +64,20 @@ func (c *llvmCodegen) generateStatement(n parser.Statement) value.Value {
 	return nil
 }
 
-func (c *llvmCodegen) generateLet(n *parser.LetStatement) value.Value {
+func (c *LlvmCodegen) generateLet(n *parser.LetStatement) value.Value {
 	val := c.generateExpression(n.Value)
 	loc := c.block.NewAlloca(types.I64)
 	c.block.NewStore(val, loc)
 	return loc
 }
 
-func (c *llvmCodegen) generateFunDef(n *parser.FunDefStatement) value.Value {
+func (c *LlvmCodegen) generateFunDef(n *parser.FunDefStatement) value.Value {
 	c.fun = c.generateFunDecl(n)
 	c.generateBlock(n.Body)
 	return c.fun
 }
 
-func (c *llvmCodegen) generateFunDecl(n *parser.FunDefStatement) *ir.Func {
+func (c *LlvmCodegen) generateFunDecl(n *parser.FunDefStatement) *ir.Func {
 	name := n.Name.Value
 	params := utils.Map(n.Params, c.generateParam)
 	// params := []*ir.Param{}
@@ -83,15 +88,15 @@ func (c *llvmCodegen) generateFunDecl(n *parser.FunDefStatement) *ir.Func {
 	return c.module.NewFunc(name, types.I64, params...)
 }
 
-func (c *llvmCodegen) generateParam(p *parser.Identifier) *ir.Param {
+func (c *LlvmCodegen) generateParam(p *parser.Identifier) *ir.Param {
 	return ir.NewParam(p.Value, types.I64)
 }
 
-func (c *llvmCodegen) generateBlock(n *parser.BlockStatement) value.Value {
+func (c *LlvmCodegen) generateBlock(n *parser.BlockStatement) value.Value {
 	return c.generateStatements(n.Statements)
 }
 
-func (c *llvmCodegen) generateIf(n *parser.IfStatement) value.Value {
+func (c *LlvmCodegen) generateIf(n *parser.IfStatement) value.Value {
 	then_block := c.fun.NewBlock("if.then")
 	else_block := c.fun.NewBlock("if.else")
 	merge_block := c.fun.NewBlock("if.merge")
@@ -109,17 +114,17 @@ func (c *llvmCodegen) generateIf(n *parser.IfStatement) value.Value {
 	return nil
 }
 
-func (c *llvmCodegen) generateReturn(n *parser.ReturnStatement) value.Value {
+func (c *LlvmCodegen) generateReturn(n *parser.ReturnStatement) value.Value {
 	v := c.generateExpression(n.Value)
 	c.block.NewRet(v)
 	return v
 }
 
-func (c *llvmCodegen) generateExprStmt(n *parser.ExpressionStatement) value.Value {
+func (c *LlvmCodegen) generateExprStmt(n *parser.ExpressionStatement) value.Value {
 	return c.generateExpression(n.Value)
 }
 
-func (c *llvmCodegen) generateExpression(n parser.Expression) value.Value {
+func (c *LlvmCodegen) generateExpression(n parser.Expression) value.Value {
 	switch n := n.(type) {
 	case *parser.Boolean:
 		return c.generateBoolean(n)
@@ -135,19 +140,19 @@ func (c *llvmCodegen) generateExpression(n parser.Expression) value.Value {
 	return nil
 }
 
-func (c *llvmCodegen) generateBoolean(n *parser.Boolean) value.Value {
+func (c *LlvmCodegen) generateBoolean(n *parser.Boolean) value.Value {
 	return constant.NewBool(n.Value)
 }
 
-func (c *llvmCodegen) generateInteger(n *parser.Integer) value.Value {
+func (c *LlvmCodegen) generateInteger(n *parser.Integer) value.Value {
 	return constant.NewInt(types.I64, n.Value)
 }
 
-// func (c *llvmCodegen) generateIdVal(n *parser.Identifier) value.Value {
+// func (c *LlvmCodegen) generateIdVal(n *parser.Identifier) value.Value {
 // 	return c.block.NewLoad(src)
 // }
 
-func (c *llvmCodegen) generateCall(n *parser.CallExpression) value.Value {
+func (c *LlvmCodegen) generateCall(n *parser.CallExpression) value.Value {
 	name := c.generateExpression(n.Function)
 	args := utils.Map(n.Args, c.generateExpression)
 	// args := []value.Value{}
@@ -158,7 +163,7 @@ func (c *llvmCodegen) generateCall(n *parser.CallExpression) value.Value {
 	return c.block.NewCall(name, args...)
 }
 
-func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
+func (c *LlvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
 	l := c.generateExpression(n.Left)
 	r := c.generateExpression(n.Right)
 	switch n.Operator {
@@ -237,7 +242,7 @@ func (c *llvmCodegen) generateBinary(n *parser.BinaryExpression) value.Value {
 	return nil
 }
 
-func (c *llvmCodegen) generatePrefix(n *parser.PrefixExpression) value.Value {
+func (c *LlvmCodegen) generatePrefix(n *parser.PrefixExpression) value.Value {
 	v := c.generateExpression(n.Value)
 	switch n.Operator {
 	// int -> int
