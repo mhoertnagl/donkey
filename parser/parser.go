@@ -241,19 +241,19 @@ func (p *Parser) parseFunDefStatement() Statement {
 // ( <Identifier>* )
 func (p *Parser) parseFunctionParams() []*Identifier {
 	params := []*Identifier{}
-	p.consume(token.LPAR) // [(]
+	p.consume(token.LPAR)
 	if p.curTokenIs(token.RPAR) {
-		p.next() // [)]
+		p.next()
 		return params
 	}
 	param := p.identifier()
 	params = append(params, param)
 	for p.curTokenIs(token.COMMA) {
-		p.next() // [,]
+		p.next()
 		param := p.identifier()
 		params = append(params, param)
 	}
-	p.consume(token.RPAR) // [)]
+	p.consume(token.RPAR)
 	return params
 }
 
@@ -261,7 +261,7 @@ func (p *Parser) parseFunctionParams() []*Identifier {
 // return <Expression>
 func (p *Parser) parseReturnStatement() *ReturnStatement {
 	stmt := &ReturnStatement{Token: p.curToken}
-	p.consume(token.RETURN) // [return]
+	p.consume(token.RETURN)
 	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
 }
@@ -269,7 +269,7 @@ func (p *Parser) parseReturnStatement() *ReturnStatement {
 // if <Expression> <BlockStatement> <ElseStatement>
 func (p *Parser) parseIfStatement() *IfStatement {
 	stmt := &IfStatement{Token: p.curToken}
-	p.consume(token.IF) // [if]
+	p.consume(token.IF)
 	stmt.Condition = p.parseExpression(LOWEST)
 	stmt.Consequence = p.parseBlockStatement()
 	stmt.Alternative = p.parseElseStatement()
@@ -294,7 +294,6 @@ func (p *Parser) parseElseStatement() Statement {
 func (p *Parser) parseBlockStatement() *BlockStatement {
 	block := &BlockStatement{Token: p.curToken, Statements: []Statement{}}
 	p.consume(token.LBRA)
-	// for p.curTokenIsNot(token.RBRA) && p.curTokenIsNot(token.EOF) {
 	for p.curTokenIsNone(token.RBRA, token.EOF) {
 		stmt := p.parseStatement()
 		block.Statements = append(block.Statements, stmt)
@@ -318,7 +317,6 @@ func (p *Parser) parseExpression(pre int) Expression {
 		return nil
 	}
 	left := prefix()
-	// for p.curTokenIsNot(token.SCOLON) && p.curTokenIsNot(token.EOF) && pre < p.curTokenPrecedence() {
 	for p.curTokenIsNone(token.SCOLON, token.EOF) && pre < p.curTokenPrecedence() {
 		infix := p.infixParslets[p.curToken.Typ]
 		if infix == nil {
@@ -374,9 +372,9 @@ func (p *Parser) parseBinary(left Expression) Expression {
 
 // ( <Expression> )
 func (p *Parser) parseExpressionGroup() Expression {
-	p.consume(token.LPAR) // [(]
+	p.consume(token.LPAR)
 	expr := p.parseExpression(LOWEST)
-	p.consume(token.RPAR) // [)]
+	p.consume(token.RPAR)
 	return expr
 }
 

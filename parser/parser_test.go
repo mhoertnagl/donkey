@@ -88,10 +88,10 @@ func TestIfStatements(t *testing.T) {
 
 // :>, <:, =>, -> >>=, =<<, |>, <|, ~>, <~, +>, <+, ::, :, #, ?:, (| |), {| |}, |{  }|, <>, ><, <|>, <+>, <->, <=>, ?, ++, --, @,
 
-func TestFunDefl(t *testing.T) {
-	test(t, "fn foo() {};", "fn foo() {  };", 1)
-	test(t, "fn bar(a) {};", "fn bar(a) {  };", 1)
-	test(t, "fn baz(a, b) {};", "fn baz(a, b) {  };", 1)
+func TestFunDefn(t *testing.T) {
+	test(t, "fn foo() {}", "fn foo() {  }", 1)
+	test(t, "fn bar(a) {}", "fn bar(a) {  }", 1)
+	test(t, "fn baz(a, b) {}", "fn baz(a, b) {  }", 1)
 }
 
 // func TestFunLiterals(t *testing.T) {
