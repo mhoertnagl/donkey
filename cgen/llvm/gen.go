@@ -25,21 +25,25 @@ var _true = constant.NewInt(i1, 1)
 type LlvmCodegen struct {
 	ctx    *Context
 	module *ir.Module
-	block  *ir.Block
 	fun    *ir.Func
+	block  *ir.Block
 }
 
 func NewLlvmCodegen() cgen.Codegen {
 	ctx := NewContext()
 	ctx.PushScope()
-	return &LlvmCodegen{ctx: ctx}
+	return &LlvmCodegen{
+		ctx:    ctx,
+		module: ir.NewModule(),
+	}
 }
 
-func (c *LlvmCodegen) Generate(n parser.Program) {
-	c.genStmts(n.Statements)
+func (c *LlvmCodegen) Generate(n *parser.Program) string {
+	c.stmts(n.Statements)
+	return c.module.String()
 }
 
-func (c *LlvmCodegen) genStmts(ns []parser.Statement) value.Value {
+func (c *LlvmCodegen) stmts(ns []parser.Statement) value.Value {
 	// m := len(n.Statements)
 	// for i := 0; i < m-1; i++ {
 	// 	c.genStmt(n.Statements[i])
@@ -55,42 +59,43 @@ func (c *LlvmCodegen) genStmts(ns []parser.Statement) value.Value {
 func (c *LlvmCodegen) genStmt(n parser.Statement) value.Value {
 	switch n := n.(type) {
 	case *parser.LetStatement:
-		return c.genLet(n)
+		return c.letStmt(n)
 	case *parser.FunDefStatement:
-		return c.genFunDef(n)
+		return c.funDefStmt(n)
 	case *parser.BlockStatement:
-		return c.genBlock(n)
-	case *parser.ReturnStatement:
-		return c.genReturn(n)
+		return c.blockStmt(n)
 	case *parser.IfStatement:
-		return c.genIf(n)
+		return c.ifStmt(n)
+	case *parser.ReturnStatement:
+		return c.returnStmt(n)
 	case *parser.ExpressionStatement:
-		return c.genExprStmt(n)
+		return c.exprStmt(n)
 	}
 	return nil
 }
 
-func (c *LlvmCodegen) genLet(n *parser.LetStatement) value.Value {
+func (c *LlvmCodegen) letStmt(n *parser.LetStatement) value.Value {
 	name := n.Name.Value
-	val := c.genExpr(n.Value)
+	val := c.expr(n.Value)
 	loc := c.block.NewAlloca(i64)
 	c.block.NewStore(val, loc)
 	c.ctx.Set(name, loc)
 	return loc
 }
 
-func (c *LlvmCodegen) genFunDef(n *parser.FunDefStatement) value.Value {
-	c.fun = c.genFunDecl(n)
+func (c *LlvmCodegen) funDefStmt(n *parser.FunDefStatement) value.Value {
+	c.fun = c.funDecl(n)
 	// TODO: Push scope
 	// TODO: add parameters
-	c.genBlock(n.Body)
+	c.block = c.fun.NewBlock(n.Name.Value + ".entry")
+	c.blockStmt(n.Body)
 	// TODO: Pop scope
 	return c.fun
 }
 
-func (c *LlvmCodegen) genFunDecl(n *parser.FunDefStatement) *ir.Func {
+func (c *LlvmCodegen) funDecl(n *parser.FunDefStatement) *ir.Func {
 	name := n.Name.Value
-	params := utils.Map(n.Params, c.genParam)
+	params := utils.Map(n.Params, c.param)
 	// params := []*ir.Param{}
 	// for _, param := range n.Params {
 	// 	v := ir.NewParam(param.Value, i64)
@@ -99,28 +104,28 @@ func (c *LlvmCodegen) genFunDecl(n *parser.FunDefStatement) *ir.Func {
 	return c.module.NewFunc(name, i64, params...)
 }
 
-func (c *LlvmCodegen) genParam(p *parser.Identifier) *ir.Param {
+func (c *LlvmCodegen) param(p *parser.Identifier) *ir.Param {
 	return ir.NewParam(p.Value, i64)
 }
 
-func (c *LlvmCodegen) genBlock(n *parser.BlockStatement) value.Value {
-	return c.genStmts(n.Statements)
+func (c *LlvmCodegen) blockStmt(n *parser.BlockStatement) value.Value {
+	return c.stmts(n.Statements)
 }
 
-func (c *LlvmCodegen) genIf(n *parser.IfStatement) value.Value {
+func (c *LlvmCodegen) ifStmt(n *parser.IfStatement) value.Value {
 	if n.Alternative != nil {
-		return c.genIfWithAlt(n)
+		return c.ifWithAlt(n)
 	}
-	return c.genIfWithoutAlt(n)
+	return c.ifWithoutAlt(n)
 }
 
-func (c *LlvmCodegen) genIfWithAlt(n *parser.IfStatement) value.Value {
+func (c *LlvmCodegen) ifWithAlt(n *parser.IfStatement) value.Value {
 	then_block := c.fun.NewBlock("if.then")
 	else_block := c.fun.NewBlock("if.else")
 	merge_block := c.fun.NewBlock("if.merge")
 
 	// Generate the condition and then a conditional branch.
-	cond := c.genExpr(n.Condition)
+	cond := c.expr(n.Condition)
 	c.block.NewCondBr(cond, then_block, else_block)
 
 	// Set the current block to then_block then generate the
@@ -131,7 +136,7 @@ func (c *LlvmCodegen) genIfWithAlt(n *parser.IfStatement) value.Value {
 	// TODO: pop scope
 	// Finally set the then_block to the current block. The
 	// current block may not be the same as then_block because
-	// genStmts could have changed it because of a
+	// stmts could have changed it because of a
 	// nested if statement for instance.
 	then_block = c.getCurrentBlock()
 	// If no terminator has been set, complete the block with
@@ -148,7 +153,7 @@ func (c *LlvmCodegen) genIfWithAlt(n *parser.IfStatement) value.Value {
 	// TODO: pop scope
 	// Finally set the else_block to the current block. The
 	// current block may not be the same as else_block because
-	// genStmts could have changed it because of a
+	// stmts could have changed it because of a
 	// nested if statement for instance.
 	else_block = c.getCurrentBlock()
 	// If no terminator has been set, complete the block with
@@ -163,12 +168,12 @@ func (c *LlvmCodegen) genIfWithAlt(n *parser.IfStatement) value.Value {
 	return nil
 }
 
-func (c *LlvmCodegen) genIfWithoutAlt(n *parser.IfStatement) value.Value {
+func (c *LlvmCodegen) ifWithoutAlt(n *parser.IfStatement) value.Value {
 	then_block := c.fun.NewBlock("if.then")
 	merge_block := c.fun.NewBlock("if.merge")
 
 	// Generate the condition and then a conditional branch.
-	cond := c.genExpr(n.Condition)
+	cond := c.expr(n.Condition)
 	c.block.NewCondBr(cond, then_block, merge_block)
 
 	// Set the current block to then_block then generate the
@@ -179,7 +184,7 @@ func (c *LlvmCodegen) genIfWithoutAlt(n *parser.IfStatement) value.Value {
 	// TODO: pop scope
 	// Finally set the then_block to the current block. The
 	// current block may not be the same as then_block because
-	// genStmts could have changed it because of a
+	// stmts could have changed it because of a
 	// nested if statement for instance.
 	then_block = c.getCurrentBlock()
 	// If no terminator has been set, complete the block with
@@ -194,43 +199,43 @@ func (c *LlvmCodegen) genIfWithoutAlt(n *parser.IfStatement) value.Value {
 	return nil
 }
 
-func (c *LlvmCodegen) genReturn(n *parser.ReturnStatement) value.Value {
-	v := c.genExpr(n.Value)
+func (c *LlvmCodegen) returnStmt(n *parser.ReturnStatement) value.Value {
+	v := c.expr(n.Value)
 	c.block.NewRet(v)
 	return v
 }
 
-func (c *LlvmCodegen) genExprStmt(n *parser.ExpressionStatement) value.Value {
-	return c.genExpr(n.Value)
+func (c *LlvmCodegen) exprStmt(n *parser.ExpressionStatement) value.Value {
+	return c.expr(n.Value)
 }
 
-func (c *LlvmCodegen) genExpr(n parser.Expression) value.Value {
+func (c *LlvmCodegen) expr(n parser.Expression) value.Value {
 	switch n := n.(type) {
 	case *parser.Boolean:
-		return c.genBoolean(n)
+		return c.boolLit(n)
 	case *parser.Integer:
-		return c.genInteger(n)
+		return c.intLit(n)
 	case *parser.Identifier:
-		return c.genIdentifier(n)
+		return c.identifier(n)
 	case *parser.CallExpression:
-		return c.genCall(n)
+		return c.callExpr(n)
 	case *parser.BinaryExpression:
-		return c.genBinary(n)
+		return c.binaryExpr(n)
 	case *parser.PrefixExpression:
-		return c.genPrefix(n)
+		return c.prefixExpr(n)
 	}
 	return nil
 }
 
-func (c *LlvmCodegen) genBoolean(n *parser.Boolean) value.Value {
+func (c *LlvmCodegen) boolLit(n *parser.Boolean) value.Value {
 	return constant.NewBool(n.Value)
 }
 
-func (c *LlvmCodegen) genInteger(n *parser.Integer) value.Value {
+func (c *LlvmCodegen) intLit(n *parser.Integer) value.Value {
 	return constant.NewInt(i64, n.Value)
 }
 
-func (c *LlvmCodegen) genIdentifier(n *parser.Identifier) value.Value {
+func (c *LlvmCodegen) identifier(n *parser.Identifier) value.Value {
 	loc := c.ctx.Get(n.Value)
 	// TODO: error if it not exists.
 	return c.block.NewLoad(i64, loc)
@@ -238,9 +243,9 @@ func (c *LlvmCodegen) genIdentifier(n *parser.Identifier) value.Value {
 	// return loc
 }
 
-func (c *LlvmCodegen) genCall(n *parser.CallExpression) value.Value {
-	name := c.genExpr(n.Function)
-	args := utils.Map(n.Args, c.genExpr)
+func (c *LlvmCodegen) callExpr(n *parser.CallExpression) value.Value {
+	name := c.expr(n.Function)
+	args := utils.Map(n.Args, c.expr)
 	// args := []value.Value{}
 	// for _, arg := range n.Args {
 	// 	v := c.genExpr(arg)
@@ -249,9 +254,9 @@ func (c *LlvmCodegen) genCall(n *parser.CallExpression) value.Value {
 	return c.block.NewCall(name, args...)
 }
 
-func (c *LlvmCodegen) genBinary(n *parser.BinaryExpression) value.Value {
-	l := c.genExpr(n.Left)
-	r := c.genExpr(n.Right)
+func (c *LlvmCodegen) binaryExpr(n *parser.BinaryExpression) value.Value {
+	l := c.expr(n.Left)
+	r := c.expr(n.Right)
 	switch n.Operator {
 	// (int, int) -> int
 	case token.PLUS:
@@ -328,8 +333,8 @@ func (c *LlvmCodegen) genBinary(n *parser.BinaryExpression) value.Value {
 	return nil
 }
 
-func (c *LlvmCodegen) genPrefix(n *parser.PrefixExpression) value.Value {
-	v := c.genExpr(n.Value)
+func (c *LlvmCodegen) prefixExpr(n *parser.PrefixExpression) value.Value {
+	v := c.expr(n.Value)
 	switch n.Operator {
 	// int -> int
 	case token.MINUS:

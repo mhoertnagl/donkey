@@ -5,5 +5,5 @@ import (
 )
 
 type Codegen interface {
-	Generate(node parser.Program)
+	Generate(node *parser.Program) string
 }
