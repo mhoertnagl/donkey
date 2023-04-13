@@ -71,10 +71,11 @@ func (c *LlvmCodegen) genStmt(n parser.Statement) value.Value {
 }
 
 func (c *LlvmCodegen) genLet(n *parser.LetStatement) value.Value {
+	name := n.Name.Value
 	val := c.genExpr(n.Value)
 	loc := c.block.NewAlloca(i64)
 	c.block.NewStore(val, loc)
-	c.ctx.Set(n.Name.Value, loc)
+	c.ctx.Set(name, loc)
 	return loc
 }
 
@@ -233,6 +234,8 @@ func (c *LlvmCodegen) genIdentifier(n *parser.Identifier) value.Value {
 	loc := c.ctx.Get(n.Value)
 	// TODO: error if it not exists.
 	return c.block.NewLoad(i64, loc)
+	// c.block.NewLoad(i64, loc)
+	// return loc
 }
 
 func (c *LlvmCodegen) genCall(n *parser.CallExpression) value.Value {
