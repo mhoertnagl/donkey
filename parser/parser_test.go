@@ -1,9 +1,10 @@
-package parser
+package parser_test
 
 import (
 	"testing"
 
 	"github.com/mhoertnagl/donkey/lexer"
+	"github.com/mhoertnagl/donkey/parser"
 )
 
 func TestEmpty(t *testing.T) {
@@ -115,7 +116,7 @@ func TestFunDefn(t *testing.T) {
 func test(t *testing.T, input string, expected string, n int) {
 	t.Helper()
 	lexer := lexer.NewLexer(input)
-	parser := NewParser(lexer)
+	parser := parser.NewParser(lexer)
 	root := parser.Parse()
 	actual := root.String()
 	m := len(root.Statements)

@@ -1,8 +1,9 @@
-package lexer
+package lexer_test
 
 import (
 	"testing"
 
+	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/token"
 )
 
@@ -162,21 +163,21 @@ func TestSingleTokens(t *testing.T) {
 	test(t, "#", token.Token{Typ: token.ILLEGAL, Literal: "#"})
 }
 
-const msgErrUnexpType = "%d: Unexpected token type [%s]. Expecting [%s]."
-const msgErrUnexpLiteral = "%d: Unexpected token literal [%s]. Expecting [%s]."
+const msgErrUnexpectedType = "%d: Unexpected token type [%s]. Expecting [%s]."
+const msgErrUnexpectedLiteral = "%d: Unexpected token literal [%s]. Expecting [%s]."
 const msgErrLineMismatch = "%d: Line mismatch [%d]. Expecting [%d]."
 const msgErrColMismatch = "%d: Column mismatch [%d]. Expecting [%d]."
 
 func testBlock(t *testing.T, input string, tokens []token.Token) {
 	t.Helper()
-	l := NewLexer(input)
+	l := lexer.NewLexer(input)
 	for i, e := range tokens {
 		a := l.Next()
 		if a.Typ != e.Typ {
-			t.Errorf(msgErrUnexpType, i, a.Typ, e.Typ)
+			t.Errorf(msgErrUnexpectedType, i, a.Typ, e.Typ)
 		}
 		if a.Literal != e.Literal {
-			t.Errorf(msgErrUnexpLiteral, i, a.Literal, e.Literal)
+			t.Errorf(msgErrUnexpectedLiteral, i, a.Literal, e.Literal)
 		}
 		if e.Line > 0 && a.Line != e.Line {
 			t.Errorf(msgErrLineMismatch, i, a.Line, e.Line)
@@ -189,13 +190,13 @@ func testBlock(t *testing.T, input string, tokens []token.Token) {
 
 func test(t *testing.T, input string, token token.Token) {
 	t.Helper()
-	l := NewLexer(input)
+	l := lexer.NewLexer(input)
 	a := l.Next()
 	if a.Typ != token.Typ {
-		t.Errorf(msgErrUnexpType, 0, a.Typ, token.Typ)
+		t.Errorf(msgErrUnexpectedType, 0, a.Typ, token.Typ)
 	}
 	if a.Literal != token.Literal {
-		t.Errorf(msgErrUnexpLiteral, 0, a.Literal, token.Literal)
+		t.Errorf(msgErrUnexpectedLiteral, 0, a.Literal, token.Literal)
 	}
 	if token.Line > 0 && a.Line != token.Line {
 		t.Errorf(msgErrLineMismatch, 0, a.Line, token.Line)

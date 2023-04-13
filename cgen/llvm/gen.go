@@ -23,13 +23,16 @@ var _false = constant.NewInt(i1, 0)
 var _true = constant.NewInt(i1, 1)
 
 type LlvmCodegen struct {
+	ctx    *Context
 	module *ir.Module
 	block  *ir.Block
 	fun    *ir.Func
 }
 
 func NewLlvmCodegen() cgen.Codegen {
-	return &LlvmCodegen{}
+	ctx := NewContext()
+	ctx.PushScope()
+	return &LlvmCodegen{ctx: ctx}
 }
 
 func (c *LlvmCodegen) Generate(n parser.Program) {
@@ -71,12 +74,16 @@ func (c *LlvmCodegen) genLet(n *parser.LetStatement) value.Value {
 	val := c.genExpr(n.Value)
 	loc := c.block.NewAlloca(i64)
 	c.block.NewStore(val, loc)
+	c.ctx.Set(n.Name.Value, loc)
 	return loc
 }
 
 func (c *LlvmCodegen) genFunDef(n *parser.FunDefStatement) value.Value {
 	c.fun = c.genFunDecl(n)
+	// TODO: Push scope
+	// TODO: add parameters
 	c.genBlock(n.Body)
+	// TODO: Pop scope
 	return c.fun
 }
 
@@ -118,7 +125,9 @@ func (c *LlvmCodegen) genIfWithAlt(n *parser.IfStatement) value.Value {
 	// Set the current block to then_block then generate the
 	// consequence statements.
 	c.setCurrentBlock(then_block)
+	// TODO: push scope
 	c.genStmt(n.Consequence)
+	// TODO: pop scope
 	// Finally set the then_block to the current block. The
 	// current block may not be the same as then_block because
 	// genStmts could have changed it because of a
@@ -133,7 +142,9 @@ func (c *LlvmCodegen) genIfWithAlt(n *parser.IfStatement) value.Value {
 	// Set the current block to else_block then generate the
 	// alternative statements.
 	c.setCurrentBlock(else_block)
+	// TODO: push scope
 	c.genStmt(n.Alternative)
+	// TODO: pop scope
 	// Finally set the else_block to the current block. The
 	// current block may not be the same as else_block because
 	// genStmts could have changed it because of a
@@ -162,7 +173,9 @@ func (c *LlvmCodegen) genIfWithoutAlt(n *parser.IfStatement) value.Value {
 	// Set the current block to then_block then generate the
 	// consequence statements.
 	c.setCurrentBlock(then_block)
+	// TODO: push scope
 	c.genStmt(n.Consequence)
+	// TODO: pop scope
 	// Finally set the then_block to the current block. The
 	// current block may not be the same as then_block because
 	// genStmts could have changed it because of a
@@ -196,6 +209,8 @@ func (c *LlvmCodegen) genExpr(n parser.Expression) value.Value {
 		return c.genBoolean(n)
 	case *parser.Integer:
 		return c.genInteger(n)
+	case *parser.Identifier:
+		return c.genIdentifier(n)
 	case *parser.CallExpression:
 		return c.genCall(n)
 	case *parser.BinaryExpression:
@@ -214,9 +229,11 @@ func (c *LlvmCodegen) genInteger(n *parser.Integer) value.Value {
 	return constant.NewInt(i64, n.Value)
 }
 
-// func (c *LlvmCodegen) genIdentifier(n *parser.Identifier) value.Value {
-// 	return c.block.NewLoad(src)
-// }
+func (c *LlvmCodegen) genIdentifier(n *parser.Identifier) value.Value {
+	loc := c.ctx.Get(n.Value)
+	// TODO: error if it not exists.
+	return c.block.NewLoad(i64, loc)
+}
 
 func (c *LlvmCodegen) genCall(n *parser.CallExpression) value.Value {
 	name := c.genExpr(n.Function)

@@ -1,4 +1,4 @@
-package cgen
+package llvm
 
 import "github.com/llir/llvm/ir/value"
 
@@ -24,12 +24,12 @@ func (ctx *Context) PopScope() {
 	ctx.scopes = ctx.scopes[:len(ctx.scopes)-1]
 }
 
-func (ctx *Context) Add(name string, value value.Value) {
+func (ctx *Context) Set(name string, value value.Value) {
 	ctx.scopes[len(ctx.scopes)-1][name] = value
 }
 
 func (ctx *Context) Get(name string) value.Value {
-	for i := len(ctx.scopes) - 1; i >= 0; i++ {
+	for i := len(ctx.scopes) - 1; i >= 0; i-- {
 		if v, ok := ctx.scopes[i][name]; ok {
 			return v
 		}
