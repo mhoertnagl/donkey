@@ -15,6 +15,7 @@ import (
 func TestCodeGeneration(t *testing.T) {
 	files := fs.FindFilesWithExtension("tests", ".dk")
 	for _, actFile := range files {
+		println(actFile)
 		expFile := strings.ReplaceAll(actFile, ".dk", ".ll")
 		act := compile(t, actFile)
 		expBin, _ := os.ReadFile(expFile)
@@ -22,7 +23,6 @@ func TestCodeGeneration(t *testing.T) {
 		if !equalsIgnoreSpace(exp, act) {
 			t.Errorf("Expected [%s] but got [%s]", exp, act)
 		}
-		println(act)
 	}
 }
 
