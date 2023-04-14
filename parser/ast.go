@@ -27,6 +27,10 @@ type Program struct {
 	Statements []Statement
 }
 
+func NewProgram() *Program {
+	return &Program{Statements: []Statement{}}
+}
+
 func (p *Program) Literal() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].Literal()
@@ -49,6 +53,10 @@ type LetStatement struct {
 	Value Expression
 }
 
+func NewLetStmt(token token.Token) *LetStatement {
+	return &LetStatement{Token: token}
+}
+
 func (s *LetStatement) statement()      {}
 func (s *LetStatement) Literal() string { return s.Token.Literal }
 func (s *LetStatement) String() string {
@@ -69,6 +77,10 @@ type FunDefStatement struct {
 	Name   *Identifier
 	Params []*Identifier
 	Body   *BlockStatement
+}
+
+func NewFunDefStmt(token token.Token) *FunDefStatement {
+	return &FunDefStatement{Token: token}
 }
 
 func (e *FunDefStatement) statement()      {}
@@ -96,6 +108,10 @@ type ReturnStatement struct {
 	Value Expression
 }
 
+func NewReturnStmt(token token.Token) *ReturnStatement {
+	return &ReturnStatement{Token: token}
+}
+
 func (s *ReturnStatement) statement()      {}
 func (s *ReturnStatement) Literal() string { return s.Token.Literal }
 func (s *ReturnStatement) String() string {
@@ -114,6 +130,10 @@ type IfStatement struct {
 	Condition   Expression
 	Consequence Statement
 	Alternative Statement
+}
+
+func NewIfStmt(token token.Token) *IfStatement {
+	return &IfStatement{Token: token}
 }
 
 func (s *IfStatement) statement()      {}
@@ -139,6 +159,10 @@ type BlockStatement struct {
 	Statements []Statement
 }
 
+func NewBlockStmt(token token.Token) *BlockStatement {
+	return &BlockStatement{Token: token, Statements: []Statement{}}
+}
+
 func (s *BlockStatement) statement()      {}
 func (s *BlockStatement) Literal() string { return s.Token.Literal }
 func (s *BlockStatement) String() string {
@@ -158,6 +182,10 @@ type ExpressionStatement struct {
 	Value Expression
 }
 
+func NewExprStmt(token token.Token) *ExpressionStatement {
+	return &ExpressionStatement{Token: token}
+}
+
 func (s *ExpressionStatement) statement()      {}
 func (s *ExpressionStatement) Literal() string { return s.Token.Literal }
 func (s *ExpressionStatement) String() string {
@@ -175,6 +203,10 @@ type Identifier struct {
 	Value string
 }
 
+func NewIdentifier(token token.Token) *Identifier {
+	return &Identifier{Token: token, Value: token.Literal}
+}
+
 func (e *Identifier) expression()     {}
 func (e *Identifier) Literal() string { return e.Token.Literal }
 func (e *Identifier) String() string  { return e.Value }
@@ -182,6 +214,10 @@ func (e *Identifier) String() string  { return e.Value }
 type Integer struct {
 	Token token.Token
 	Value int64
+}
+
+func NewIntLiteral(token token.Token) *Integer {
+	return &Integer{Token: token}
 }
 
 func (e *Integer) expression()     {}
@@ -193,6 +229,10 @@ type Boolean struct {
 	Value bool
 }
 
+func NewBoolLiteral(_token token.Token) *Boolean {
+	return &Boolean{Token: _token, Value: _token.Typ == token.TRUE}
+}
+
 func (e *Boolean) expression()     {}
 func (e *Boolean) Literal() string { return e.Token.Literal }
 func (e *Boolean) String() string  { return fmt.Sprintf("%t", e.Value) }
@@ -201,6 +241,10 @@ type PrefixExpression struct {
 	Token    token.Token
 	Operator token.TokenType
 	Value    Expression
+}
+
+func NewPrefixExpr(token token.Token) *PrefixExpression {
+	return &PrefixExpression{Token: token, Operator: token.Typ}
 }
 
 func (e *PrefixExpression) expression()     {}
@@ -219,6 +263,10 @@ type BinaryExpression struct {
 	Left     Expression
 	Operator token.TokenType
 	Right    Expression
+}
+
+func NewBinaryExpr(token token.Token) *BinaryExpression {
+	return &BinaryExpression{Token: token, Operator: token.Typ}
 }
 
 func (e *BinaryExpression) expression()     {}
@@ -264,6 +312,10 @@ type CallExpression struct {
 	Token    token.Token
 	Function Expression
 	Args     []Expression
+}
+
+func NewCallExpr(token token.Token) *CallExpression {
+	return &CallExpression{Token: token}
 }
 
 func (e *CallExpression) expression()     {}

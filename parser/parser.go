@@ -193,7 +193,7 @@ func (p *Parser) error(format string, a ...any) {
 }
 
 func (p *Parser) Parse() *Program {
-	prog := &Program{Statements: []Statement{}}
+	prog := NewProgram()
 	for p.curTokenIsNot(token.EOF) {
 		stmt := p.parseStatement()
 		prog.Statements = append(prog.Statements, stmt)
@@ -220,18 +220,18 @@ func (p *Parser) parseStatement() Statement {
 
 // let <Identifier> = <Expression>
 func (p *Parser) parseLetStatement() *LetStatement {
-	stmt := &LetStatement{Token: p.curToken}
-	p.consume(token.LET) // [let]
+	stmt := NewLetStmt(p.curToken)
+	p.consume(token.LET)
 	stmt.Name = p.identifier()
-	p.consume(token.ASSIGN) // [=]
+	p.consume(token.ASSIGN)
 	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
 }
 
 // fn <Identifier> <FunctionParams> <BlockStatement>
 func (p *Parser) parseFunDefStatement() Statement {
-	stmt := &FunDefStatement{Token: p.curToken}
-	p.consume(token.FUN) // [fn]
+	stmt := NewFunDefStmt(p.curToken)
+	p.consume(token.FUN)
 	stmt.Name = p.identifier()
 	stmt.Params = p.parseFunctionParams()
 	stmt.Body = p.parseBlockStatement()
@@ -243,13 +243,13 @@ func (p *Parser) parseFunctionParams() []*Identifier {
 	params := []*Identifier{}
 	p.consume(token.LPAR)
 	if p.curTokenIs(token.RPAR) {
-		p.next()
+		p.consume(token.RPAR)
 		return params
 	}
 	param := p.identifier()
 	params = append(params, param)
 	for p.curTokenIs(token.COMMA) {
-		p.next()
+		p.consume(token.COMMA)
 		param := p.identifier()
 		params = append(params, param)
 	}
@@ -260,7 +260,7 @@ func (p *Parser) parseFunctionParams() []*Identifier {
 // TODO: return <nil>
 // return <Expression>
 func (p *Parser) parseReturnStatement() *ReturnStatement {
-	stmt := &ReturnStatement{Token: p.curToken}
+	stmt := NewReturnStmt(p.curToken)
 	p.consume(token.RETURN)
 	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
@@ -268,7 +268,7 @@ func (p *Parser) parseReturnStatement() *ReturnStatement {
 
 // if <Expression> <BlockStatement> <ElseStatement>
 func (p *Parser) parseIfStatement() *IfStatement {
-	stmt := &IfStatement{Token: p.curToken}
+	stmt := NewIfStmt(p.curToken)
 	p.consume(token.IF)
 	stmt.Condition = p.parseExpression(LOWEST)
 	stmt.Consequence = p.parseBlockStatement()
@@ -292,7 +292,7 @@ func (p *Parser) parseElseStatement() Statement {
 
 // { <Statement>* }
 func (p *Parser) parseBlockStatement() *BlockStatement {
-	block := &BlockStatement{Token: p.curToken, Statements: []Statement{}}
+	block := NewBlockStmt(p.curToken)
 	p.consume(token.LBRA)
 	for p.curTokenIsNone(token.RBRA, token.EOF) {
 		stmt := p.parseStatement()
@@ -305,7 +305,7 @@ func (p *Parser) parseBlockStatement() *BlockStatement {
 
 // <Expression>
 func (p *Parser) parseExpressionStatement() *ExpressionStatement {
-	stmt := &ExpressionStatement{Token: p.curToken}
+	stmt := NewExprStmt(p.curToken)
 	stmt.Value = p.parseExpression(LOWEST)
 	return stmt
 }
@@ -332,37 +332,37 @@ func (p *Parser) parseIdentifier() Expression {
 }
 
 func (p *Parser) identifier() *Identifier {
-	id := &Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	id := NewIdentifier(p.curToken)
 	p.consume(token.ID)
 	return id
 }
 
 func (p *Parser) parseInteger() Expression {
-	expr := &Integer{Token: p.curToken}
-	n, err := strconv.ParseInt(p.curToken.Literal, 10, 64)
+	expr := NewIntLiteral(p.curToken)
+	num, err := strconv.ParseInt(p.curToken.Literal, 10, 64)
 	if err != nil {
 		p.error("Invaild number [%s].", p.curToken.Literal)
 	}
-	expr.Value = n
+	expr.Value = num
 	p.next() // Consume integer.
 	return expr
 }
 
 func (p *Parser) parseBoolean() Expression {
-	expr := &Boolean{Token: p.curToken, Value: p.curToken.Typ == token.TRUE}
+	expr := NewBoolLiteral(p.curToken)
 	p.next() // Consume boolean.
 	return expr
 }
 
 func (p *Parser) parsePrefix() Expression {
-	expr := &PrefixExpression{Token: p.curToken, Operator: p.curToken.Typ}
+	expr := NewPrefixExpr(p.curToken)
 	p.next() // Consume operator.
 	expr.Value = p.parseExpression(PREFIX)
 	return expr
 }
 
 func (p *Parser) parseBinary(left Expression) Expression {
-	expr := &BinaryExpression{Token: p.curToken, Operator: p.curToken.Typ}
+	expr := NewBinaryExpr(p.curToken)
 	expr.Left = left
 	precedence := p.curTokenPrecedence()
 	p.next() // Consume operator.
@@ -389,7 +389,7 @@ func (p *Parser) parseExpressionGroup() Expression {
 
 // <Expression> ( <Expression>* )
 func (p *Parser) parseFunCall(left Expression) Expression {
-	expr := &CallExpression{Token: p.curToken}
+	expr := NewCallExpr(p.curToken)
 	expr.Function = left
 	expr.Args = p.parseExprSeq(token.LPAR, token.COMMA, token.RPAR)
 	return expr
@@ -399,13 +399,13 @@ func (p *Parser) parseExprSeq(start, delim, end token.TokenType) []Expression {
 	exprs := []Expression{}
 	p.consume(start)
 	if p.curTokenIs(end) {
-		p.next() // <end>
+		p.consume(end)
 		return exprs
 	}
 	expr := p.parseExpression(LOWEST)
 	exprs = append(exprs, expr)
 	for p.curTokenIs(delim) {
-		p.next() // <delim>
+		p.consume(delim)
 		expr := p.parseExpression(LOWEST)
 		exprs = append(exprs, expr)
 	}

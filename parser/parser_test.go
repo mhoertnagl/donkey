@@ -101,15 +101,15 @@ func TestFunDefn(t *testing.T) {
 // 	test(t, "fn (a, b) {};", "fun (a, b) {  };", 1)
 // }
 
-// func TestFunCall(t *testing.T) {
-// 	test(t, "foo();", "foo();", 1)
-// 	test(t, "foo(a);", "foo(a);", 1)
-// 	test(t, "foo(a, b);", "foo(a, b);", 1)
+func TestFunCall(t *testing.T) {
+	test(t, "foo();", "foo();", 1)
+	test(t, "foo(a);", "foo(a);", 1)
+	test(t, "foo(a, b);", "foo(a, b);", 1)
 
-// 	test(t, "fn () { return 0; }();", "fun () { return 0; }();", 1)
-// 	test(t, "fn (a) { return a + 1; }(1);", "fun (a) { return (a + 1); }(1);", 1)
-// 	test(t, "fn (a, b) { return a + b; }(1, 2);", "fun (a, b) { return (a + b); }(1, 2);", 1)
-// }
+	// test(t, "fn () { return 0; }();", "fun () { return 0; }();", 1)
+	// test(t, "fn (a) { return a + 1; }(1);", "fun (a) { return (a + 1); }(1);", 1)
+	// test(t, "fn (a, b) { return a + b; }(1, 2);", "fun (a, b) { return (a + b); }(1, 2);", 1)
+}
 
 // TODO: Test error cases.
 
