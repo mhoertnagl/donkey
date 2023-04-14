@@ -122,7 +122,6 @@ func (c *LlvmCodegen) ifStmt(n *parser.IfStatement) value.Value {
 func (c *LlvmCodegen) ifWithAlt(n *parser.IfStatement) value.Value {
 	then_block := c.fun.NewBlock("if.then")
 	else_block := c.fun.NewBlock("if.else")
-	merge_block := c.fun.NewBlock("if.merge")
 
 	// Generate the condition and then a conditional branch.
 	cond := c.expr(n.Condition)
@@ -139,11 +138,6 @@ func (c *LlvmCodegen) ifWithAlt(n *parser.IfStatement) value.Value {
 	// stmts could have changed it because of a
 	// nested if statement for instance.
 	then_block = c.getCurrentBlock()
-	// If no terminator has been set, complete the block with
-	// an unconditional jump to the merge_block.
-	if then_block.Term == nil {
-		then_block.NewBr(merge_block)
-	}
 
 	// Set the current block to else_block then generate the
 	// alternative statements.
@@ -156,14 +150,38 @@ func (c *LlvmCodegen) ifWithAlt(n *parser.IfStatement) value.Value {
 	// stmts could have changed it because of a
 	// nested if statement for instance.
 	else_block = c.getCurrentBlock()
-	// If no terminator has been set, complete the block with
-	// an unconditional jump to the merge_block.
-	if else_block.Term == nil {
-		else_block.NewBr(merge_block)
-	}
 
-	// Continue with merge_block as the new current block.
-	c.setCurrentBlock(merge_block)
+	// If either block is missing a terminator, create a merge
+	// block. Consider the following program:
+	//
+	//   fn main() {
+	//     let a = 1;
+	//     let b = 2;
+	//     if b < a {
+	//       return a;
+	//     } else {
+	//       return b;
+	//     }
+	//   }
+	//
+	// If both blocks already terminate the merge block is
+	// superfluous and ends without a terminator which results
+	// in a compilation error.
+	if then_block.Term == nil || else_block.Term == nil {
+		merge_block := c.fun.NewBlock("if.merge")
+		// If no terminator has been set, complete the block with
+		// an unconditional jump to the merge_block.
+		if then_block.Term == nil {
+			then_block.NewBr(merge_block)
+		}
+		// If no terminator has been set, complete the block with
+		// an unconditional jump to the merge_block.
+		if else_block.Term == nil {
+			else_block.NewBr(merge_block)
+		}
+		// Continue with merge_block as the new current block.
+		c.setCurrentBlock(merge_block)
+	}
 
 	return nil
 }

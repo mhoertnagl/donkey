@@ -12,6 +12,10 @@ import (
 	"github.com/mhoertnagl/donkey/utils/fs"
 )
 
+// TODO: assignments
+// TODO: tests assignments
+// TODO: tests nested if
+
 func TestCodeGeneration(t *testing.T) {
 	files := fs.FindFilesWithExtension("tests", ".dk")
 	for _, actFile := range files {
