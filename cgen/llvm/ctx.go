@@ -2,7 +2,27 @@ package llvm
 
 import "github.com/llir/llvm/ir/value"
 
-type Scope map[string]value.Value
+type Symbol interface {
+	GetValue() value.Value
+}
+
+type ValueSymbol struct {
+	value value.Value
+}
+
+func (sym *ValueSymbol) GetValue() value.Value {
+	return sym.value
+}
+
+type FuncSymbol struct {
+	value value.Value
+}
+
+func (sym *FuncSymbol) GetValue() value.Value {
+	return sym.value
+}
+
+type Scope map[string]Symbol
 
 type Context struct {
 	// parent  *Context
@@ -24,11 +44,19 @@ func (ctx *Context) PopScope() {
 	ctx.scopes = ctx.scopes[:len(ctx.scopes)-1]
 }
 
-func (ctx *Context) Set(name string, value value.Value) {
-	ctx.scopes[len(ctx.scopes)-1][name] = value
+func (ctx *Context) SetValue(name string, value value.Value) {
+	ctx.setSymbol(name, &ValueSymbol{value})
 }
 
-func (ctx *Context) Get(name string) value.Value {
+func (ctx *Context) SetFunction(name string, value value.Value) {
+	ctx.setSymbol(name, &FuncSymbol{value})
+}
+
+func (ctx *Context) setSymbol(name string, symbol Symbol) {
+	ctx.scopes[len(ctx.scopes)-1][name] = symbol
+}
+
+func (ctx *Context) Get(name string) Symbol {
 	for i := len(ctx.scopes) - 1; i >= 0; i-- {
 		if v, ok := ctx.scopes[i][name]; ok {
 			return v

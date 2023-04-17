@@ -44,11 +44,6 @@ func (c *LlvmCodegen) Generate(n *parser.Program) string {
 }
 
 func (c *LlvmCodegen) stmts(ns []parser.Statement) value.Value {
-	// m := len(n.Statements)
-	// for i := 0; i < m-1; i++ {
-	// 	c.genStmt(n.Statements[i])
-	// }
-	// return c.genStmt(n.Statements[m-1])
 	var res value.Value = nil
 	for _, s := range ns {
 		res = c.genStmt(s)
@@ -77,14 +72,15 @@ func (c *LlvmCodegen) genStmt(n parser.Statement) value.Value {
 func (c *LlvmCodegen) letStmt(n *parser.LetStatement) value.Value {
 	name := n.Name.Value
 	val := c.expr(n.Value)
-	loc := c.block.NewAlloca(i64)
-	c.block.NewStore(val, loc)
-	c.ctx.Set(name, loc)
-	return loc
+	ptr := c.block.NewAlloca(i64)
+	c.block.NewStore(val, ptr)
+	c.ctx.SetValue(name, ptr)
+	return ptr
 }
 
 func (c *LlvmCodegen) funDefStmt(n *parser.FunDefStatement) value.Value {
 	c.fun = c.funDecl(n)
+	c.ctx.SetFunction(n.Name.Value, c.fun)
 	// TODO: Push scope
 	// TODO: add parameters
 	c.block = c.fun.NewBlock(n.Name.Value + ".entry")
@@ -96,11 +92,6 @@ func (c *LlvmCodegen) funDefStmt(n *parser.FunDefStatement) value.Value {
 func (c *LlvmCodegen) funDecl(n *parser.FunDefStatement) *ir.Func {
 	name := n.Name.Value
 	params := utils.Map(n.Params, c.param)
-	// params := []*ir.Param{}
-	// for _, param := range n.Params {
-	// 	v := ir.NewParam(param.Value, i64)
-	// 	params = append(params, v)
-	// }
 	return c.module.NewFunc(name, i64, params...)
 }
 
@@ -254,21 +245,25 @@ func (c *LlvmCodegen) intLit(n *parser.Integer) value.Value {
 }
 
 func (c *LlvmCodegen) identifier(n *parser.Identifier) value.Value {
-	loc := c.ctx.Get(n.Value)
-	// TODO: error if it not exists.
-	return c.block.NewLoad(i64, loc)
-	// c.block.NewLoad(i64, loc)
-	// return loc
+	sym := c.ctx.Get((n.Value))
+	switch sym := sym.(type) {
+	case *ValueSymbol:
+		return c.block.NewLoad(i64, sym.GetValue())
+	case *FuncSymbol:
+		return sym.GetValue()
+	}
+	return nil
+	// // TODO: Does not support functions.
+	// ptr := c.ctx.Get(n.Value)
+	// // TODO: error if it not exists.
+	// return c.block.NewLoad(i64, ptr)
+	// // c.block.NewLoad(i64, loc)
+	// // return loc
 }
 
 func (c *LlvmCodegen) callExpr(n *parser.CallExpression) value.Value {
 	name := c.expr(n.Function)
 	args := utils.Map(n.Args, c.expr)
-	// args := []value.Value{}
-	// for _, arg := range n.Args {
-	// 	v := c.genExpr(arg)
-	// 	args = append(args, v)
-	// }
 	return c.block.NewCall(name, args...)
 }
 
