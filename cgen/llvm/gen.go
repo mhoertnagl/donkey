@@ -12,6 +12,9 @@ import (
 	"github.com/mhoertnagl/donkey/utils"
 )
 
+// TODO: function declaration after use.
+// TODO: pass arguments.
+
 var i1 = types.I1
 var i64 = types.I64
 
@@ -31,7 +34,6 @@ type LlvmCodegen struct {
 
 func NewLlvmCodegen() cgen.Codegen {
 	ctx := NewContext()
-	ctx.PushScope()
 	return &LlvmCodegen{
 		ctx:    ctx,
 		module: ir.NewModule(),

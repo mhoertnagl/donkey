@@ -25,15 +25,15 @@ func (sym *FuncSymbol) GetValue() value.Value {
 type Scope map[string]Symbol
 
 type Context struct {
-	// parent  *Context
 	scopes []Scope
 }
 
 func NewContext() *Context {
-	return &Context{
-		// parent:  nil,
+	ctx := &Context{
 		scopes: make([]Scope, 0),
 	}
+	ctx.PushScope()
+	return ctx
 }
 
 func (ctx *Context) PushScope() {
