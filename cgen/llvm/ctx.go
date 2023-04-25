@@ -1,6 +1,9 @@
 package llvm
 
-import "github.com/llir/llvm/ir/value"
+import (
+	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/value"
+)
 
 type Symbol interface {
 	GetValue() value.Value
@@ -15,11 +18,11 @@ func (sym *ValueSymbol) GetValue() value.Value {
 }
 
 type FuncSymbol struct {
-	value value.Value
+	fun *ir.Func
 }
 
 func (sym *FuncSymbol) GetValue() value.Value {
-	return sym.value
+	return sym.fun
 }
 
 type Scope map[string]Symbol
@@ -48,8 +51,8 @@ func (ctx *Context) SetValue(name string, value value.Value) {
 	ctx.setSymbol(name, &ValueSymbol{value})
 }
 
-func (ctx *Context) SetFunction(name string, value value.Value) {
-	ctx.setSymbol(name, &FuncSymbol{value})
+func (ctx *Context) SetFunction(name string, fun *ir.Func) {
+	ctx.setSymbol(name, &FuncSymbol{fun})
 }
 
 func (ctx *Context) setSymbol(name string, symbol Symbol) {

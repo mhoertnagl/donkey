@@ -33,14 +33,14 @@ type LlvmCodegen struct {
 }
 
 func NewLlvmCodegen() cgen.Codegen {
-	ctx := NewContext()
 	return &LlvmCodegen{
-		ctx:    ctx,
+		ctx:    NewContext(),
 		module: ir.NewModule(),
 	}
 }
 
 func (c *LlvmCodegen) Generate(n *parser.Program) string {
+	c.collectFunctionDefinitions(n)
 	c.stmts(n.Statements)
 	return c.module.String()
 }
@@ -81,25 +81,33 @@ func (c *LlvmCodegen) letStmt(n *parser.LetStatement) value.Value {
 }
 
 func (c *LlvmCodegen) funDefStmt(n *parser.FunDefStatement) value.Value {
-	c.fun = c.funDecl(n)
-	c.ctx.SetFunction(n.Name.Value, c.fun)
-	// TODO: Push scope
-	// TODO: add parameters
-	c.block = c.fun.NewBlock(n.Name.Value + ".entry")
-	c.blockStmt(n.Body)
-	// TODO: Pop scope
+	sym := c.ctx.Get(n.Name.Value)
+	switch fun := sym.GetValue().(type) {
+	case *ir.Func:
+		c.fun = fun
+		c.block = c.fun.NewBlock(n.Name.Value + ".entry")
+		c.blockStmt(n.Body)
+	}
 	return c.fun
+	// c.fun = c.funDecl(n)
+	// c.ctx.SetFunction(n.Name.Value, c.fun)
+	// // TODO: Push scope
+	// // TODO: add parameters
+	// c.block = c.fun.NewBlock(n.Name.Value + ".entry")
+	// c.blockStmt(n.Body)
+	// // TODO: Pop scope
+	// return c.fun
 }
 
-func (c *LlvmCodegen) funDecl(n *parser.FunDefStatement) *ir.Func {
-	name := n.Name.Value
-	params := utils.Map(n.Params, c.param)
-	return c.module.NewFunc(name, i64, params...)
-}
+// func (c *LlvmCodegen) funDecl(n *parser.FunDefStatement) *ir.Func {
+// 	name := n.Name.Value
+// 	params := utils.Map(n.Params, c.param)
+// 	return c.module.NewFunc(name, i64, params...)
+// }
 
-func (c *LlvmCodegen) param(p *parser.Identifier) *ir.Param {
-	return ir.NewParam(p.Value, i64)
-}
+// func (c *LlvmCodegen) param(p *parser.Identifier) *ir.Param {
+// 	return ir.NewParam(p.Value, i64)
+// }
 
 func (c *LlvmCodegen) blockStmt(n *parser.BlockStatement) value.Value {
 	return c.stmts(n.Statements)
