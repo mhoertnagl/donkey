@@ -27,7 +27,6 @@ func funDefStmt(c *LlvmCodegen, n *parser.FunDefStatement) {
 	name := n.Name.Value
 	params := utils.Map(n.Params, param)
 	fun := c.module.NewFunc(name, i64, params...)
-	// fun.NewBlock(n.Name.Value + ".entry")
 	c.ctx.SetFunction(n.Name.Value, fun)
 }
 

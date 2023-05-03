@@ -9,6 +9,10 @@ import (
 	"github.com/mhoertnagl/donkey/parser"
 )
 
+// TODO: Scopes for if
+// TODO: for loop
+// TODO: Assignment
+
 var i1 = types.I1
 var i64 = types.I64
 
