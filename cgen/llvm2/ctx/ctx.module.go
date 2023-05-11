@@ -12,9 +12,9 @@ type ModuleContext struct {
 	functions Functions
 }
 
-func NewModuleContext(module *ir.Module) *ModuleContext {
+func NewModuleContext() *ModuleContext {
 	return &ModuleContext{
-		module:    module,
+		module:    ir.NewModule(),
 		functions: make(Functions),
 	}
 }

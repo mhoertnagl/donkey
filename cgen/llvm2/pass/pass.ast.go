@@ -16,7 +16,7 @@ type AstPass struct {
 
 func NewAstPass() *AstPass {
 	return &AstPass{
-		module: ctx.NewModuleContext(ir.NewModule()),
+		module: ctx.NewModuleContext(),
 	}
 }
 
@@ -25,8 +25,8 @@ func (p *AstPass) Run(n parser.Program) *ast.Module {
 }
 
 func (p *AstPass) program(n parser.Program) *ast.Module {
-	p.stmts(n.Statements)
-	return nil
+	stmts := p.stmts(n.Statements)
+	return ast.NewModule(p.module, stmts)
 }
 
 func (p *AstPass) stmts(ns []parser.Statement) ast.Stmts {
@@ -48,10 +48,13 @@ func (p *AstPass) stmt(n parser.Statement) ast.Stmt {
 	case *parser.ExpressionStatement:
 		p.exprStmt(n)
 	}
+	return nil
 }
 
 func (p *AstPass) letStmt(n *parser.LetStatement) *ast.LetStmt {
-	return ast.NewLetStmt(p.fun, n.Name.Literal(), p.expr(n.Value))
+	name := n.Name.Literal()
+	expr := p.expr(n.Value)
+	return ast.NewLetStmt(p.fun, name, expr)
 }
 
 func (p *AstPass) funDefStmt(n *parser.FunDefStatement) *ast.FunDefStmt {
@@ -70,12 +73,16 @@ func (p *AstPass) blockStmt(n *parser.BlockStatement) ast.Stmts {
 	return p.stmts(n.Statements)
 }
 
-func (p *AstPass) ifStmt(n *parser.IfStatement) {
-
+func (p *AstPass) ifStmt(n *parser.IfStatement) *ast.IfStmt {
+	cond := p.expr(n.Condition)
+	cons := p.stmt(n.Consequence)
+	alt := p.stmt(n.Alternative)
+	return ast.NewIfStmt(p.fun, cond, cons, alt)
 }
 
 func (p *AstPass) returnStmt(n *parser.ReturnStatement) *ast.ReturnStmt {
-	return ast.NewReturnStmt(p.fun, p.expr(n.Value))
+	expr := p.expr(n.Value)
+	return ast.NewReturnStmt(p.fun, expr)
 }
 
 func (p *AstPass) exprStmt(n *parser.ExpressionStatement) {

@@ -117,10 +117,7 @@ func (s *ReturnStatement) Literal() string { return s.Token.Literal }
 func (s *ReturnStatement) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("return ")
-	// TODO: Remove when expression parsing is in place.
-	if s.Value != nil {
-		buf.WriteString(s.Value.String())
-	}
+	buf.WriteString(s.Value.String())
 	buf.WriteString(";")
 	return buf.String()
 }

@@ -10,11 +10,31 @@ type FuncContext struct {
 	fun    *ir.Func
 	block  *ir.Block
 	name   string
-	locals Symbols
+	locals Scopes
+}
+
+func NewFuncContext(module *ModuleContext, fun *ir.Func, name string) *FuncContext {
+	ctx := &FuncContext{
+		module: module,
+		fun:    fun,
+		name:   name,
+		locals: make(Scopes, 0),
+	}
+	// Initial function scope.
+	ctx.PushScope()
+	return ctx
+}
+
+func (c *FuncContext) PushScope() {
+	c.locals = append(c.locals, make(Symbols))
+}
+
+func (c *FuncContext) PopScope() {
+	c.locals = c.locals[:len(c.locals)-1]
 }
 
 func (c *FuncContext) SetLocal(name string, value value.Value) {
-	c.locals[name] = NewValueSymbol(value)
+	c.locals[len(c.locals)-1][name] = NewValueSymbol(value)
 }
 
 func (c *FuncContext) CreateEntryBlock() *ir.Block {
