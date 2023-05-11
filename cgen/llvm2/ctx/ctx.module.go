@@ -20,12 +20,8 @@ func NewModuleContext() *ModuleContext {
 }
 
 func (c *ModuleContext) NewFuncContext(name string, retType types.Type, params ...*ir.Param) *FuncContext {
-	c.functions[name] = &FuncContext{
-		module: c,
-		fun:    c.module.NewFunc(name, retType, params...),
-		name:   name,
-		locals: make(Symbols),
-	}
+	fun := c.module.NewFunc(name, retType, params...)
+	c.functions[name] = NewFuncContext(c, fun, name)
 	return c.functions[name]
 }
 

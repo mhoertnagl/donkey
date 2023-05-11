@@ -22,5 +22,5 @@ func (n *LetStmt) gen() {
 	val := n.val.gen()
 	ptr := blk.NewAlloca(types.I64)
 	blk.NewStore(val, ptr)
-	n.fun.SetLocal(n.name, ptr)
+	n.fun.Set(n.name, ptr)
 }

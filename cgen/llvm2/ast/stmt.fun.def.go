@@ -25,6 +25,6 @@ func (n *FunDefStmt) allocArgs() {
 	for _, arg := range n.fun.Params {
 		ptr := blk.NewAlloca(types.I64)
 		blk.NewStore(arg, ptr)
-		n.fun.SetLocal(arg.Name(), ptr)
+		n.fun.Set(arg.Name(), ptr)
 	}
 }
