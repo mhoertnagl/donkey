@@ -26,3 +26,7 @@ func (c *ModuleContext) NewFuncContext(name string, retType types.Type, params .
 }
 
 // func (c *ModuleContext) GetFunction
+
+func (c *ModuleContext) String() string {
+	return c.module.String()
+}

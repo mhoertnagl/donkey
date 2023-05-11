@@ -20,11 +20,11 @@ func NewAstPass() *AstPass {
 	}
 }
 
-func (p *AstPass) Run(n parser.Program) *ast.Module {
+func (p *AstPass) Run(n *parser.Program) *ast.Module {
 	return p.program(n)
 }
 
-func (p *AstPass) program(n parser.Program) *ast.Module {
+func (p *AstPass) program(n *parser.Program) *ast.Module {
 	stmts := p.stmts(n.Statements)
 	return ast.NewModule(p.module, stmts)
 }
@@ -42,13 +42,13 @@ func (p *AstPass) stmt(n parser.Statement) ast.Stmt {
 	case *parser.BlockStatement:
 		return p.blockStmt(n)
 	case *parser.IfStatement:
-		p.ifStmt(n)
+		return p.ifStmt(n)
 	case *parser.ReturnStatement:
 		return p.returnStmt(n)
 	case *parser.ExpressionStatement:
 		p.exprStmt(n)
 	}
-	return nil
+	// return nil
 }
 
 func (p *AstPass) letStmt(n *parser.LetStatement) *ast.LetStmt {
@@ -90,5 +90,38 @@ func (p *AstPass) exprStmt(n *parser.ExpressionStatement) {
 }
 
 func (p *AstPass) expr(n parser.Expression) ast.Expr {
+	switch n := n.(type) {
+	case *parser.Boolean:
+		return p.boolLit(n)
+	case *parser.Integer:
+		return p.intLit(n)
+	case *parser.Identifier:
+		return p.identifier(n)
+	case *parser.CallExpression:
+		return p.callExpr(n)
+	case *parser.BinaryExpression:
+		return p.binaryExpr(n)
+	case *parser.PrefixExpression:
+		return p.prefixExpr(n)
+	}
+	return nil
+}
 
+func (p *AstPass) boolLit(n *parser.Boolean) ast.Expr {
+	return ast.NewBoolLiteralExpr(p.fun, n.Value)
+}
+
+func (p *AstPass) intLit(n *parser.Integer) ast.Expr {
+	return ast.NewIntLiteralExpr(p.fun, n.Value)
+}
+
+func (p *AstPass) binaryExpr(n *parser.BinaryExpression) ast.Expr {
+	left := p.expr(n.Left)
+	right := p.expr(n.Right)
+	return ast.NewBinaryExpr(p.fun, left, n.Operator, right)
+}
+
+func (p *AstPass) prefixExpr(n *parser.PrefixExpression) ast.Expr {
+	val := p.expr(n.Value)
+	return ast.NewPrefixExpr(p.fun, n.Operator, val)
 }

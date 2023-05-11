@@ -10,3 +10,10 @@ type Module struct {
 func NewModule(module *ctx.ModuleContext, stmts Stmts) *Module {
 	return &Module{module, stmts}
 }
+
+func (m *Module) Gen() string {
+	for _, stmt := range m.stmts {
+		stmt.gen()
+	}
+	return m.module.String()
+}
