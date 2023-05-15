@@ -115,6 +115,16 @@ func (p *AstPass) intLit(n *parser.Integer) ast.Expr {
 	return ast.NewIntLiteralExpr(p.fun, n.Value)
 }
 
+func (p *AstPass) identifier(n *parser.Identifier) ast.Expr {
+	return ast.NewIdentifierExpr(p.fun, n.Value)
+}
+
+func (p *AstPass) callExpr(n *parser.CallExpression) ast.Expr {
+	callee := p.expr(n.Function)
+	args := utils.Map(n.Args, p.expr)
+	return ast.NewFunCallExpr(p.fun, callee, args)
+}
+
 func (p *AstPass) binaryExpr(n *parser.BinaryExpression) ast.Expr {
 	left := p.expr(n.Left)
 	right := p.expr(n.Right)
