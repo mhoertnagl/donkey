@@ -1,7 +1,0 @@
-fn foo() {
-  return 1;
-}
-
-fn main() {
-  return foo();
-}
