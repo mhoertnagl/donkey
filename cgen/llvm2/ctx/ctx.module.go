@@ -13,10 +13,11 @@ type ModuleContext struct {
 }
 
 func NewModuleContext() *ModuleContext {
-	return &ModuleContext{
+	ctx := &ModuleContext{
 		module:    ir.NewModule(),
 		functions: make(Functions),
 	}
+	return ctx
 }
 
 func (c *ModuleContext) NewFuncContext(name string, retType types.Type, params ...*ir.Param) *FuncContext {
@@ -25,7 +26,12 @@ func (c *ModuleContext) NewFuncContext(name string, retType types.Type, params .
 	return c.functions[name]
 }
 
-// func (c *ModuleContext) GetFunction
+func (c *ModuleContext) Get(name string) (Symbol, bool) {
+	if fun, ok := c.functions[name]; ok {
+		return NewFuncSymbol(fun.fun), ok
+	}
+	return nil, false
+}
 
 func (c *ModuleContext) String() string {
 	return c.module.String()

@@ -25,8 +25,7 @@ func (n *FunDefStmt) allocArgs() {
 	blk := n.fun.GetCurrentBlock()
 	for _, arg := range n.params {
 		ptr := blk.NewAlloca(types.I64)
-		val := arg.gen()
-		blk.NewStore(val, ptr)
+		blk.NewStore(arg.param, ptr)
 		n.fun.Set(arg.name, ptr)
 	}
 }

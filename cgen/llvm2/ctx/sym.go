@@ -25,6 +25,10 @@ type FuncSymbol struct {
 	fun *ir.Func
 }
 
+func NewFuncSymbol(fun *ir.Func) *FuncSymbol {
+	return &FuncSymbol{fun}
+}
+
 func (sym *FuncSymbol) GetValue() value.Value {
 	return sym.fun
 }

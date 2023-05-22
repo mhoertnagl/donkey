@@ -48,7 +48,8 @@ func (p *AstPass) stmt(n parser.Statement) ast.Stmt {
 	case *parser.ExpressionStatement:
 		return p.exprStmt(n)
 	}
-	panic("Unsupported statement type.")
+	return nil
+	// panic(fmt.Sprintf("Unsupported statement type: %v", n))
 }
 
 func (p *AstPass) letStmt(n *parser.LetStatement) *ast.LetStmt {
