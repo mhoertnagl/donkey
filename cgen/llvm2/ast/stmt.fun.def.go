@@ -6,12 +6,13 @@ import (
 )
 
 type FunDefStmt struct {
-	fun  *ctx.FuncContext
-	body Stmts
+	fun    *ctx.FuncContext
+	params []*ParamExpr
+	body   Stmts
 }
 
-func NewFunDefStmt(fun *ctx.FuncContext, body Stmts) *FunDefStmt {
-	return &FunDefStmt{fun, body}
+func NewFunDefStmt(fun *ctx.FuncContext, params []*ParamExpr, body Stmts) *FunDefStmt {
+	return &FunDefStmt{fun, params, body}
 }
 
 func (n *FunDefStmt) gen() {
@@ -22,9 +23,10 @@ func (n *FunDefStmt) gen() {
 
 func (n *FunDefStmt) allocArgs() {
 	blk := n.fun.GetCurrentBlock()
-	for _, arg := range n.fun.Params {
+	for _, arg := range n.params {
 		ptr := blk.NewAlloca(types.I64)
-		blk.NewStore(arg, ptr)
-		n.fun.Set(arg.Name(), ptr)
+		val := arg.gen()
+		blk.NewStore(val, ptr)
+		n.fun.Set(arg.name, ptr)
 	}
 }

@@ -46,9 +46,9 @@ func (p *AstPass) stmt(n parser.Statement) ast.Stmt {
 	case *parser.ReturnStatement:
 		return p.returnStmt(n)
 	case *parser.ExpressionStatement:
-		p.exprStmt(n)
+		return p.exprStmt(n)
 	}
-	// return nil
+	panic("Unsupported statement type.")
 }
 
 func (p *AstPass) letStmt(n *parser.LetStatement) *ast.LetStmt {
@@ -59,14 +59,23 @@ func (p *AstPass) letStmt(n *parser.LetStatement) *ast.LetStmt {
 
 func (p *AstPass) funDefStmt(n *parser.FunDefStatement) *ast.FunDefStmt {
 	name := n.Name.Value
-	params := utils.Map(n.Params, param)
-	p.fun = p.module.NewFuncContext(name, types.I64, params...)
+	irParams := utils.Map(n.Params, irParam)
+	p.fun = p.module.NewFuncContext(name, types.I64, irParams...)
+	params := p.mapParams(n.Params, irParams)
 	body := p.blockStmt(n.Body)
-	return ast.NewFunDefStmt(p.fun, body)
+	return ast.NewFunDefStmt(p.fun, params, body)
 }
 
-func param(p *parser.Identifier) *ir.Param {
+func irParam(p *parser.Identifier) *ir.Param {
 	return ir.NewParam(p.Value, types.I64)
+}
+
+func (p *AstPass) mapParams(is []*parser.Identifier, ps []*ir.Param) []*ast.ParamExpr {
+	res := make([]*ast.ParamExpr, len(is))
+	for i := 0; i < len(is); i++ {
+		res[i] = ast.NewParamExpr(p.fun, is[i].Value, ps[i])
+	}
+	return res
 }
 
 func (p *AstPass) blockStmt(n *parser.BlockStatement) ast.Stmts {
@@ -85,8 +94,9 @@ func (p *AstPass) returnStmt(n *parser.ReturnStatement) *ast.ReturnStmt {
 	return ast.NewReturnStmt(p.fun, expr)
 }
 
-func (p *AstPass) exprStmt(n *parser.ExpressionStatement) {
-
+func (p *AstPass) exprStmt(n *parser.ExpressionStatement) *ast.ExprStmt {
+	expr := p.expr(n.Value)
+	return ast.NewExprStmt(p.fun, expr)
 }
 
 func (p *AstPass) expr(n parser.Expression) ast.Expr {
@@ -104,7 +114,7 @@ func (p *AstPass) expr(n parser.Expression) ast.Expr {
 	case *parser.PrefixExpression:
 		return p.prefixExpr(n)
 	}
-	return nil
+	panic("Unsupported expression type.")
 }
 
 func (p *AstPass) boolLit(n *parser.Boolean) ast.Expr {

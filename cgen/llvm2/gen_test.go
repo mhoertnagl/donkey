@@ -1,4 +1,4 @@
-package llvm_test
+package llvm2_test
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mhoertnagl/donkey/cgen/llvm"
+	"github.com/mhoertnagl/donkey/cgen/llvm2"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/parser"
 	"github.com/mhoertnagl/donkey/utils/fs"
@@ -36,7 +36,7 @@ func compile(t *testing.T, file string) string {
 	lexer := lexer.NewLexer(string(input))
 	parser := parser.NewParser(lexer)
 	prog := parser.Parse()
-	gen := llvm.NewLlvmCodegen()
+	gen := llvm2.NewLlvmCodegen()
 	return gen.Generate(prog)
 }
 

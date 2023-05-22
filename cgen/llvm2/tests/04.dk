@@ -1,0 +1,8 @@
+fn main() {
+  let a = 1;
+  let b = 2;
+  if b >= a {
+    return a;
+  }
+  return b;
+}

@@ -1,21 +1,23 @@
 package ast
 
 import (
+	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
 )
 
-type IdentifierExpr struct {
-	fun  *ctx.FuncContext
-	name string
+type ParamExpr struct {
+	fun   *ctx.FuncContext
+	name  string
+	param *ir.Param
 }
 
-func NewIdentifierExpr(fun *ctx.FuncContext, name string) *IdentifierExpr {
-	return &IdentifierExpr{fun, name}
+func NewParamExpr(fun *ctx.FuncContext, name string, param *ir.Param) *ParamExpr {
+	return &ParamExpr{fun, name, param}
 }
 
-func (e *IdentifierExpr) gen() value.Value {
+func (e *ParamExpr) gen() value.Value {
 	sym, _ := e.fun.Get(e.name)
 	switch sym := sym.(type) {
 	case *ctx.ValueSymbol:
