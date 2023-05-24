@@ -1,4 +1,4 @@
-package llvm2_test
+package llvm_test
 
 import (
 	"os"
@@ -6,14 +6,26 @@ import (
 	"strings"
 	"testing"
 
-	llvm2 "github.com/mhoertnagl/donkey/cgen/llvm"
+	"github.com/mhoertnagl/donkey/cgen/llvm"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/parser"
 	"github.com/mhoertnagl/donkey/utils/fs"
 )
 
-// TODO: assignments
-// TODO: tests assignments
+// TODO: assignment inside if condition
+
+// TODO: for loop
+// TODO: general iteration conditions
+// TODO: switch case?
+// TODO: strings
+// TODO: arrays
+// TODO: pointers?
+// TODO: structs
+// TODO: list support
+// TODO: tuples?
+// TODO: dictionaries?
+// TODO: type inference
+
 // TODO: tests nested if
 
 func TestCodeGeneration(t *testing.T) {
@@ -36,7 +48,7 @@ func compile(t *testing.T, file string) string {
 	lexer := lexer.NewLexer(string(input))
 	parser := parser.NewParser(lexer)
 	prog := parser.Parse()
-	gen := llvm2.NewLlvmCodegen()
+	gen := llvm.NewLlvmCodegen()
 	return gen.Generate(prog)
 }
 

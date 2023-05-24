@@ -8,21 +8,6 @@ import (
 	"github.com/mhoertnagl/donkey/token"
 )
 
-// TODO: assignment
-// - assignment inside if condition: separate scope or is it okay if the variable continues to exist?
-
-// TODO: for loop
-// TODO: general iteration conditions
-// TODO: switch case?
-// TODO: strings
-// TODO: arrays
-// TODO: pointers?
-// TODO: structs
-// TODO: list support
-// TODO: tuples?
-// TODO: dictionaries?
-// TODO: type inference
-
 const (
 	_       int = 100 * iota
 	LOWEST      // LOWEST precedence.

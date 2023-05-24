@@ -1,4 +1,4 @@
-package llvm2
+package llvm
 
 import (
 	"github.com/mhoertnagl/donkey/cgen"
