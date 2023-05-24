@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mhoertnagl/donkey/cgen/llvm2"
+	llvm2 "github.com/mhoertnagl/donkey/cgen/llvm"
 	"github.com/mhoertnagl/donkey/lexer"
 	"github.com/mhoertnagl/donkey/parser"
 	"github.com/mhoertnagl/donkey/utils/fs"

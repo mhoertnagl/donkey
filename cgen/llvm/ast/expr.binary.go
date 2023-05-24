@@ -5,7 +5,7 @@ import (
 	"github.com/llir/llvm/ir/enum"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
-	"github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
+	"github.com/mhoertnagl/donkey/cgen/llvm/ctx"
 	"github.com/mhoertnagl/donkey/token"
 )
 

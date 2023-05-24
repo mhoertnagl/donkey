@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
+import "github.com/mhoertnagl/donkey/cgen/llvm/ctx"
 
 type Module struct {
 	module *ctx.ModuleContext

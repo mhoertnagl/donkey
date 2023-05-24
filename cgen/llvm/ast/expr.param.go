@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/llir/llvm/ir"
-	"github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
+	"github.com/mhoertnagl/donkey/cgen/llvm/ctx"
 )
 
 type ParamExpr struct {

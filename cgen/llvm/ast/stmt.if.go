@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
+	"github.com/mhoertnagl/donkey/cgen/llvm/ctx"
 )
 
 type IfStmt struct {

@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
-	"github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
+	"github.com/mhoertnagl/donkey/cgen/llvm/ctx"
 )
 
 type IdentifierExpr struct {

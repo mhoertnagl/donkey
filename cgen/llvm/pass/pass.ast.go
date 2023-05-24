@@ -3,8 +3,8 @@ package pass
 import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
-	"github.com/mhoertnagl/donkey/cgen/llvm2/ast"
-	"github.com/mhoertnagl/donkey/cgen/llvm2/ctx"
+	"github.com/mhoertnagl/donkey/cgen/llvm/ast"
+	"github.com/mhoertnagl/donkey/cgen/llvm/ctx"
 	"github.com/mhoertnagl/donkey/parser"
 	"github.com/mhoertnagl/donkey/utils"
 )

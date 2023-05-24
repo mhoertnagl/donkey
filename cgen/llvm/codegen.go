@@ -2,7 +2,7 @@ package llvm2
 
 import (
 	"github.com/mhoertnagl/donkey/cgen"
-	"github.com/mhoertnagl/donkey/cgen/llvm2/pass"
+	"github.com/mhoertnagl/donkey/cgen/llvm/pass"
 	"github.com/mhoertnagl/donkey/parser"
 )
 
