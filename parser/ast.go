@@ -280,6 +280,32 @@ func (e *BinaryExpression) String() string {
 	return buf.String()
 }
 
+type AssignmentExpression struct {
+	Token token.Token
+	Name  *Identifier
+	// Operator token.TokenType
+	Value Expression
+}
+
+func NewAssignmentExpression(token token.Token) *AssignmentExpression {
+	return &AssignmentExpression{Token: token /* Operator: token.Typ */}
+}
+
+func (e *AssignmentExpression) expression()     {}
+func (e *AssignmentExpression) Literal() string { return e.Token.Literal }
+func (e *AssignmentExpression) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("(")
+	buf.WriteString(e.Name.String())
+	buf.WriteString(" = ")
+	// buf.WriteString(" ")
+	// buf.WriteString(string(e.Operator))
+	// buf.WriteString(" ")
+	buf.WriteString(e.Value.String())
+	buf.WriteString(")")
+	return buf.String()
+}
+
 // type FunctionLiteral struct {
 // 	Token  token.Token
 // 	Params []*Identifier

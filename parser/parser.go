@@ -8,6 +8,9 @@ import (
 	"github.com/mhoertnagl/donkey/token"
 )
 
+// TODO: assignment
+// - assignment inside if condition: separate scope or is it okay if the variable continues to exist?
+
 // TODO: for loop
 // TODO: general iteration conditions
 // TODO: switch case?
@@ -21,8 +24,9 @@ import (
 // TODO: type inference
 
 const (
-	_       int = iota
+	_       int = 100 * iota
 	LOWEST      // LOWEST precedence.
+	ASSIGN      // =
 	OR          // ||
 	AND         // &&
 	EQUALS      // ==, !=
@@ -59,6 +63,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 		infixParslets:  make(map[token.TokenType]infixParslet),
 	}
 
+	p.registerPrecedence(token.ASSIGN, ASSIGN)
 	p.registerPrecedence(token.DISJ, OR)
 	p.registerPrecedence(token.CONJ, AND)
 	p.registerPrecedence(token.EQU, EQUALS)
@@ -91,6 +96,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAR, p.parseExpressionGroup)
 	// p.registerPrefix(token.FUN, p.parseFunctionLiteral)
 
+	p.registerInfix(token.ASSIGN, p.parseAssignment)
 	p.registerInfix(token.DISJ, p.parseBinary)
 	p.registerInfix(token.CONJ, p.parseBinary)
 	p.registerInfix(token.EQU, p.parseBinary)
@@ -367,6 +373,20 @@ func (p *Parser) parseBinary(left Expression) Expression {
 	precedence := p.curTokenPrecedence()
 	p.next() // Consume operator.
 	expr.Right = p.parseExpression(precedence)
+	return expr
+}
+
+// <Identifier> = <Expression>
+func (p *Parser) parseAssignment(left Expression) Expression {
+	expr := NewAssignmentExpression(p.curToken)
+	switch name := left.(type) {
+	case *Identifier:
+		expr.Name = name
+		p.consume(token.ASSIGN)
+		expr.Value = p.parseExpression(LOWEST)
+	default:
+		p.error("Only identifiers allowed on the left side of an assignment.")
+	}
 	return expr
 }
 

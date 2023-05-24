@@ -1,6 +1,8 @@
 package pass
 
 import (
+	"fmt"
+
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/mhoertnagl/donkey/cgen/llvm/ast"
@@ -47,9 +49,12 @@ func (p *AstPass) stmt(n parser.Statement) ast.Stmt {
 		return p.returnStmt(n)
 	case *parser.ExpressionStatement:
 		return p.exprStmt(n)
+	case nil:
+		// n can be nil if it is the missing alternative
+		// of an if statement.
+		return nil
 	}
-	return nil
-	// panic(fmt.Sprintf("Unsupported statement type: %v", n))
+	panic(fmt.Sprintf("Unsupported statement type: %v", n))
 }
 
 func (p *AstPass) letStmt(n *parser.LetStatement) *ast.LetStmt {
@@ -71,6 +76,7 @@ func irParam(p *parser.Identifier) *ir.Param {
 	return ir.NewParam(p.Value, types.I64)
 }
 
+// TODO: Can this be done better?
 func (p *AstPass) mapParams(is []*parser.Identifier, ps []*ir.Param) []*ast.ParamExpr {
 	res := make([]*ast.ParamExpr, len(is))
 	for i := 0; i < len(is); i++ {
@@ -114,6 +120,8 @@ func (p *AstPass) expr(n parser.Expression) ast.Expr {
 		return p.binaryExpr(n)
 	case *parser.PrefixExpression:
 		return p.prefixExpr(n)
+	case *parser.AssignmentExpression:
+		return p.assignExpr(n)
 	}
 	panic("Unsupported expression type.")
 }
@@ -126,7 +134,7 @@ func (p *AstPass) intLit(n *parser.Integer) ast.Expr {
 	return ast.NewIntLiteralExpr(p.fun, n.Value)
 }
 
-func (p *AstPass) identifier(n *parser.Identifier) ast.Expr {
+func (p *AstPass) identifier(n *parser.Identifier) *ast.IdentifierExpr {
 	return ast.NewIdentifierExpr(p.fun, n.Value)
 }
 
@@ -145,4 +153,10 @@ func (p *AstPass) binaryExpr(n *parser.BinaryExpression) ast.Expr {
 func (p *AstPass) prefixExpr(n *parser.PrefixExpression) ast.Expr {
 	val := p.expr(n.Value)
 	return ast.NewPrefixExpr(p.fun, n.Operator, val)
+}
+
+func (p *AstPass) assignExpr(n *parser.AssignmentExpression) ast.Expr {
+	id := p.identifier(n.Name)
+	value := p.expr(n.Value)
+	return ast.NewAssignExpr(p.fun, id, value)
 }

@@ -37,9 +37,12 @@
 */
 
 fn main() {
+  let x = 0;
+  x = x + 5;
   // Infinite loop
   for {
-
+    break;
+    continue;
   }
   // While loop
   let a = 10;

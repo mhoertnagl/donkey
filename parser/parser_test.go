@@ -87,8 +87,6 @@ func TestIfStatements(t *testing.T) {
 	test(t, "if a { return b; } else if b { return c; } else { return d; }", "if a { return b; } else if b { return c; } else { return d; }", 1)
 }
 
-// :>, <:, =>, -> >>=, =<<, |>, <|, ~>, <~, +>, <+, ::, :, #, ?:, (| |), {| |}, |{  }|, <>, ><, <|>, <+>, <->, <=>, ?, ++, --, @,
-
 func TestFunDefn(t *testing.T) {
 	test(t, "fn foo() {}", "fn foo() {  }", 1)
 	test(t, "fn bar(a) {}", "fn bar(a) {  }", 1)
@@ -109,6 +107,11 @@ func TestFunCall(t *testing.T) {
 	// test(t, "fn () { return 0; }();", "fun () { return 0; }();", 1)
 	// test(t, "fn (a) { return a + 1; }(1);", "fun (a) { return (a + 1); }(1);", 1)
 	// test(t, "fn (a, b) { return a + b; }(1, 2);", "fun (a, b) { return (a + b); }(1, 2);", 1)
+}
+
+func TestAssignment(t *testing.T) {
+	test(t, "a = 1;", "(a = 1);", 1)
+	test(t, "a = b || c;", "(a = (b || c));", 1)
 }
 
 // TODO: Test error cases.

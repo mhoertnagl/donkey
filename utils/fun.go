@@ -7,3 +7,9 @@ func Map[S, T any](values []S, f func(S) T) []T {
 	}
 	return res
 }
+
+func For[S any](values []S, f func(S)) {
+	for _, v := range values {
+		f(v)
+	}
+}
