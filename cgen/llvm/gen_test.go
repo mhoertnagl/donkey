@@ -12,8 +12,6 @@ import (
 	"github.com/mhoertnagl/donkey/utils/fs"
 )
 
-// TODO: assignment inside if condition
-
 // TODO: for loop
 // TODO: general iteration conditions
 // TODO: switch case?

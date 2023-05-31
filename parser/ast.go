@@ -42,7 +42,6 @@ func (p *Program) String() string {
 	var buf bytes.Buffer
 	for _, s := range p.Statements {
 		buf.WriteString(s.String())
-		//buf.WriteString(";")
 	}
 	return buf.String()
 }
@@ -64,10 +63,7 @@ func (s *LetStatement) String() string {
 	buf.WriteString("let ")
 	buf.WriteString(s.Name.String())
 	buf.WriteString(" = ")
-	// TODO: Remove when expression parsing is in place.
-	if s.Value != nil {
-		buf.WriteString(s.Value.String())
-	}
+	buf.WriteString(s.Value.String())
 	buf.WriteString(";")
 	return buf.String()
 }
@@ -151,6 +147,44 @@ func (s *IfStatement) String() string {
 	return buf.String()
 }
 
+type ForStatement struct {
+	Token        token.Token
+	Name         *Identifier
+	InitialValue Expression
+	Condition    Expression
+	Update       Expression
+	Body         Statement
+}
+
+func NewForStmt(token token.Token) *ForStatement {
+	return &ForStatement{Token: token}
+}
+
+func (s *ForStatement) statement()      {}
+func (s *ForStatement) Literal() string { return s.Token.Literal }
+func (s *ForStatement) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("for")
+	buf.WriteString(" ")
+	if s.Name != nil && s.InitialValue != nil {
+		buf.WriteString("let")
+		buf.WriteString(" ")
+		buf.WriteString(s.Name.String())
+		buf.WriteString(" = ")
+		buf.WriteString(s.InitialValue.String())
+		buf.WriteString("; ")
+		buf.WriteString(s.Condition.String())
+		buf.WriteString("; ")
+		buf.WriteString(s.Update.String())
+		buf.WriteString(" ")
+	} else if s.Condition != nil {
+		buf.WriteString(s.Condition.String())
+		buf.WriteString(" ")
+	}
+	buf.WriteString(s.Body.String())
+	return buf.String()
+}
+
 type BlockStatement struct {
 	Token      token.Token
 	Statements []Statement
@@ -165,11 +199,13 @@ func (s *BlockStatement) Literal() string { return s.Token.Literal }
 func (s *BlockStatement) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("{")
-	buf.WriteString(" ")
-	for _, stmt := range s.Statements {
-		buf.WriteString(stmt.String())
+	if s.Statements != nil && len(s.Statements) > 0 {
+		buf.WriteString(" ")
+		for _, stmt := range s.Statements {
+			buf.WriteString(stmt.String())
+		}
+		buf.WriteString(" ")
 	}
-	buf.WriteString(" ")
 	buf.WriteString("}")
 	return buf.String()
 }
@@ -187,10 +223,7 @@ func (s *ExpressionStatement) statement()      {}
 func (s *ExpressionStatement) Literal() string { return s.Token.Literal }
 func (s *ExpressionStatement) String() string {
 	var buf bytes.Buffer
-	// TODO: Remove when expression parsing is in place.
-	if s.Value != nil {
-		buf.WriteString(s.Value.String())
-	}
+	buf.WriteString(s.Value.String())
 	buf.WriteString(";")
 	return buf.String()
 }
@@ -298,9 +331,6 @@ func (e *AssignmentExpression) String() string {
 	buf.WriteString("(")
 	buf.WriteString(e.Name.String())
 	buf.WriteString(" = ")
-	// buf.WriteString(" ")
-	// buf.WriteString(string(e.Operator))
-	// buf.WriteString(" ")
 	buf.WriteString(e.Value.String())
 	buf.WriteString(")")
 	return buf.String()
@@ -351,7 +381,6 @@ func (e *CallExpression) String() string {
 
 	var buf bytes.Buffer
 	buf.WriteString(e.Function.String())
-	// buf.WriteString(" ")
 	buf.WriteString("(")
 	buf.WriteString(strings.Join(args, ", "))
 	buf.WriteString(")")

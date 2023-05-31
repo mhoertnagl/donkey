@@ -203,6 +203,8 @@ func (p *Parser) parseStatement() Statement {
 		return p.parseReturnStatement()
 	case token.IF:
 		return p.parseIfStatement()
+	case token.FOR:
+		return p.parseForStatement()
 	case token.LBRA:
 		return p.parseBlockStatement()
 	}
@@ -279,6 +281,31 @@ func (p *Parser) parseElseStatement() Statement {
 		return p.parseBlockStatement()
 	}
 	return nil
+}
+
+// for <BlockStatement>
+// for <Condition> <BlockStatement>
+// for <Initializer> ; <Condition> ; <Update> <BlockStatement>
+func (p *Parser) parseForStatement() *ForStatement {
+	stmt := NewForStmt(p.curToken)
+	p.consume(token.FOR)
+	// Token is not '{'. Parse additional conditions.
+	if p.curTokenIsNot(token.LBRA) {
+		if p.curTokenIs(token.LET) {
+			p.consume(token.LET)
+			stmt.Name = p.identifier()
+			p.consume(token.ASSIGN)
+			stmt.InitialValue = p.parseExpression(LOWEST)
+			p.consume(token.SCOLON)
+			stmt.Condition = p.parseExpression(LOWEST)
+			p.consume(token.SCOLON)
+			stmt.Update = p.parseExpression(LOWEST)
+		} else {
+			stmt.Condition = p.parseExpression(LOWEST)
+		}
+	}
+	stmt.Body = p.parseBlockStatement()
+	return stmt
 }
 
 // { <Statement>* }

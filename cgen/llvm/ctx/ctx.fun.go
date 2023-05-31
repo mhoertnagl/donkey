@@ -30,7 +30,7 @@ func (c *FuncContext) CreateEntryBlock() *ir.Block {
 }
 
 func (c *FuncContext) CreateBlock(name string) *ir.Block {
-	return c.fun.NewBlock(name)
+	return c.fun.NewBlock(c.module.GetUniqueName(name))
 }
 
 func (c *FuncContext) SetCurrentBlock(block *ir.Block) {

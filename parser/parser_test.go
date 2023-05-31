@@ -71,7 +71,7 @@ func TestExpressionGroupStatements(t *testing.T) {
 }
 
 func TestBlockStatements(t *testing.T) {
-	test(t, "{ }", "{  }", 1)
+	test(t, "{ }", "{}", 1)
 	test(t, "{ 1; }", "{ 1; }", 1)
 	test(t, "{ -1; -2; }", "{ (-1);(-2); }", 1)
 	test(t, "{ 0; 1; 2; }", "{ 0;1;2; }", 1)
@@ -88,9 +88,9 @@ func TestIfStatements(t *testing.T) {
 }
 
 func TestFunDefn(t *testing.T) {
-	test(t, "fn foo() {}", "fn foo() {  }", 1)
-	test(t, "fn bar(a) {}", "fn bar(a) {  }", 1)
-	test(t, "fn baz(a, b) {}", "fn baz(a, b) {  }", 1)
+	test(t, "fn foo() { }", "fn foo() {}", 1)
+	test(t, "fn bar(a) { }", "fn bar(a) {}", 1)
+	test(t, "fn baz(a, b) { }", "fn baz(a, b) {}", 1)
 }
 
 // func TestFunLiterals(t *testing.T) {
@@ -112,6 +112,16 @@ func TestFunCall(t *testing.T) {
 func TestAssignment(t *testing.T) {
 	test(t, "a = 1;", "(a = 1);", 1)
 	test(t, "a = b || c;", "(a = (b || c));", 1)
+}
+
+func TestForStatement(t *testing.T) {
+	test(t, "for { x = x + 1; }", "for { (x = (x + 1)); }", 1)
+	test(t, "for a < b { x = x + 1; }", "for (a < b) { (x = (x + 1)); }", 1)
+	test(t,
+		"for let i = 0; i < 10; i = i + 1 { x = x + 1; }",
+		"for let i = 0; (i < 10); (i = (i + 1)) { (x = (x + 1)); }",
+		1,
+	)
 }
 
 // TODO: Test error cases.

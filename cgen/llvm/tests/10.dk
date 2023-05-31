@@ -1,0 +1,10 @@
+fn main() {
+  let a = 0;
+  if 1 < 2 {
+    a = a + 1;
+  }
+  if 2 < 3 {
+    a = a + 4;
+  }
+  return a;
+}
